@@ -125,12 +125,13 @@ what CMake is looking for in that directory.
 #### CMakeCache.txt - Your own little sandbox
 
 When CMake goes and processes your CMakeLists it creates a file called
-**CmakeCache.txt**. This file contains all the different variables as they are
+**CmakeCache.txt**. This file contains all the different CMake variables as they are
 configured specifically for that build of your project. So paths that might have
 been found, library names of detected dependencies, compiler flags, deployment
-paths....
+paths, etc.
+
 This is the file you might have to tweak when, for instance, CMake tells you
-"I can't find openCV. Can you tell me where it is?". The main pane of the
+"I can't find OpenCV. Can you tell me where it is?". The main pane of the
 **cmake-gui** tool will show you precisely variables on that cache. And will
 write there the variables and flags you set.
 
@@ -157,7 +158,7 @@ target_link_libraries(MyProj SomeLib)
 target_compile_definitions(MyProj MyDef)
 ```
 
-In CMake every statement is a function, even loops. This can be a bit strange
+In CMake every statement is a function or a macro (which works mostly like functions, but there are some [differences](https://cmake.org/cmake/help/v3.0/command/macro.html), even loops. This can be a bit strange
 in the beginning but most of them aren't too arcane once you get a feel for the
 mindset behind them. So rather than tweaking something, more likely than not,
 each CMake statement is giving a more direct command.
@@ -165,7 +166,7 @@ each CMake statement is giving a more direct command.
 #### Casing conventions
 
 Once upon a time it was considered good practice to have all your CMake commands
-in capitals, so.. rewriting the previous code block
+in capitals, so... rewriting the previous code block
 
 ```
 SET(MYPROJ_SOURCES main.cpp)
@@ -225,7 +226,7 @@ geez, no need for martyrdom guise."_
     (I guess Qt never made enough noise about Qbs to push me into learning that)
     It's support has been steadily getting better and although some things still
     have me disappointed such as the fact that if I want to create a new class
-    I have to pop Guake down and `touch newclass.hpp && touch newclass.cpp` and
+    I have to pop Guake down and `touch newclass.{h,c}pp` and
     then manually add them to the CMakeLists.
 
     It's still disappointing but a small detail and the rest of what Qt Creator
@@ -592,7 +593,7 @@ your code.
 
 The first reason is that _CONFIG_ packages are constituted of a few different
 files on one of them will be called something like `OpenCV-config-version.cmake`
-This _config-version_ file gives you power to control version compatibility. that
+This _config-version_ file gives you power to control version compatibility. That
 file enables you to tell users of your package whether they can expect to have
 compatibility broken never, on each different major version, for ever single
 version.... It also allows users to ask for a specific version and CMake will
@@ -624,13 +625,23 @@ And for **Binary Folder**
 
 And both are predictably wrong in this case.
 
-When CMake hears something like `CMAKE_CURRENT_SOURCE_DIR` what it means is,
+When CMake hears something like `CMAKE_SOURCE_DIR` what it means is,
 as mentioned before, the directory containing the _CMakeLists.txt_ for the root
-of the project currently opened.
+of the project currently opened, whereas `CMAKE_CURRENT_SOURCE_DIR` means the the
+directory containing the _CMakeLists.txt_ that is currently being processed:
 
-And while `CMAKE_CURRENT_BINARY_DIR` is a bit closer to what we'd expect, what
+```
+src/
+ - CMakeLists.txt (CMAKE_SOURCE_DIR = src/, CMAKE_CURRENT_SOURCE_DIR = src/)
+ - lib1/
+   - CMakeLists.txt (CMAKE_SOURCE_DIR = src/, CMAKE_CURRENT_SOURCE_DIR = src/lib1/)
+```
+
+And while `CMAKE_BINARY_DIR` is a bit closer to what we'd expect, what
 it means is _"That folder where I'm going to write CMakeCache.txt and build all
-the things! ALL THE THINGS!"_.
+the things! ALL THE THINGS!"_. `CMAKE_CURRENT_BINARY_DIR` follows the came rules of
+`CMAKE_CURRENT_SOURCE_DIR`. For every directory included with `add_subdirectory()`,
+a subfolder is created inside the `CMAKE_BINARY_DIR`, that folder is `CMAKE_CURRENT_BINARY_DIR`.
 
 As we mentioned before too, the last one of these is `CMAKE_CURRENT_LIST_DIR`
 which is similar to current source dir, but relates to the CMakeLists file it

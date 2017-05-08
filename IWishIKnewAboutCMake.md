@@ -36,7 +36,8 @@ linking somewhat sane. I'll talk a bit more about them later but, TL;DR:
  >
  >  ```
  > find_package(SomeMonster)
- > target_link_libraries(MyLovelyProject SomeMonster)```
+ > target_link_libraries(MyLovelyProject SomeMonster)
+ >  ```
  >
  > Congratulations! You have you library linking, your includes pointed to
  > your language standard requirement notified and any compile flags or defines

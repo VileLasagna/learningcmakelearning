@@ -226,7 +226,7 @@ geez, no need for martyrdom guise."_
     (I guess Qt never made enough noise about Qbs to push me into learning that)
     It's support has been steadily getting better and although some things still
     have me disappointed such as the fact that if I want to create a new class
-    I have to pop Guake down and `touch newclass.hpp && touch newclass.cpp` and
+    I have to pop Guake down and `touch newclass.{h,c}pp` and
     then manually add them to the CMakeLists.
 
     It's still disappointing but a small detail and the rest of what Qt Creator

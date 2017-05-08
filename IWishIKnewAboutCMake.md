@@ -627,27 +627,83 @@ And both are predictably wrong in this case.
 
 When CMake hears something like `CMAKE_SOURCE_DIR` what it means is,
 as mentioned before, the directory containing the _CMakeLists.txt_ for the root
-of the project currently opened, whereas `CMAKE_CURRENT_SOURCE_DIR` means the the
+of the project currently opened, whereas `CMAKE_CURRENT_SOURCE_DIR` means the
 directory containing the _CMakeLists.txt_ that is currently being processed:
-
-```
-src/
- - CMakeLists.txt (CMAKE_SOURCE_DIR = src/, CMAKE_CURRENT_SOURCE_DIR = src/)
- - lib1/
-   - CMakeLists.txt (CMAKE_SOURCE_DIR = src/, CMAKE_CURRENT_SOURCE_DIR = src/lib1/)
-```
 
 And while `CMAKE_BINARY_DIR` is a bit closer to what we'd expect, what
 it means is _"That folder where I'm going to write CMakeCache.txt and build all
-the things! ALL THE THINGS!"_. `CMAKE_CURRENT_BINARY_DIR` follows the came rules of
-`CMAKE_CURRENT_SOURCE_DIR`. For every directory included with `add_subdirectory()`,
-a subfolder is created inside the `CMAKE_BINARY_DIR`, that folder is `CMAKE_CURRENT_BINARY_DIR`.
+the things! ALL THE THINGS!"_.
+`CMAKE_CURRENT_BINARY_DIR` follows the came rules of `CMAKE_CURRENT_SOURCE_DIR`.
+For every directory included with `add_subdirectory()`, a subfolder is created
+inside the `CMAKE_BINARY_DIR`, that folder is `CMAKE_CURRENT_BINARY_DIR`.
 
 As we mentioned before too, the last one of these is `CMAKE_CURRENT_LIST_DIR`
 which is similar to current source dir, but relates to the CMakeLists file it
 is used in.
 
-No biggie for these, but a potential source of confusion.
+A bit confusing, yes? So let's just hack out a quick mock-up example.
+
+```
+projDir $ ls -R
+
+CMakeLists.txt
+
+projDir/lib/
+    CMakeLists.txt
+
+    projDir/lib/cmake
+        someScript.cmake
+
+build/
+    CMakeCache.txt
+    Makefile
+    build/lib/
+        Makefile
+
+```
+Okay, now for these files, let's imagine
+
+projDir/CMakeLists.txt has a line that reads `add_sudirectory(lib)`
+
+projDir/lib/CMakeLists.txt has one that says `include(cmake/somescript.cmake)`
+
+and
+
+```
+projDir $ cat ./lib/cmake/someScript.cmake
+
+message("Current Binary dir = ${CMAKE_CURRENT_BINARY_DIR}" )
+message("Current Source dir = ${CMAKE_CURRENT_SOURCE_DIR}" )
+message("Current List dir = ${CMAKE_CURRENT_LIST_DIR}" )
+
+message("Binary dir = ${CMAKE_BINARY_DIR}" )
+message("Source dir = ${CMAKE_SOURCE_DIR}" )
+
+```
+
+When we run CMake and it reaches _someScript.cmake_  it'll process these
+messages and the output to the console will be:
+
+```
+
+Current Binary dir = projDir/build/lib
+Current Source dir = projDir/lib
+Current List dir = projDir/lib/cmake
+
+Binary dir = projDir/build
+Source dir = projDir
+
+```
+
+It's a little strange at first to wrap your head around this and it's a result
+of CMake's build tree structure. Entering different _CMakeLists.txt_ will update
+your *CURRENT* Build and source folders, but you'll always have a reference to
+the root of the tree and *CMAKE_CURRENT_LIST_DIR* always points to the
+location of the current file being processed, even if it is a module, or script.
+Incidentally, you also have *CMAKE_CURRENT_LIST_FILE* as well as a
+*CMAKE_CURRENT_LIST_LINE*, this time, giving you the information they sound
+like they should
+
 
 #### In-Source Builds vs Out-of-Source Builds
 

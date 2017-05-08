@@ -158,7 +158,7 @@ target_link_libraries(MyProj SomeLib)
 target_compile_definitions(MyProj MyDef)
 ```
 
-In CMake every statement is a function, even loops. This can be a bit strange
+In CMake every statement is a function or a macro (which works mostly like functions, but there are some [differences](https://cmake.org/cmake/help/v3.0/command/macro.html), even loops. This can be a bit strange
 in the beginning but most of them aren't too arcane once you get a feel for the
 mindset behind them. So rather than tweaking something, more likely than not,
 each CMake statement is giving a more direct command.

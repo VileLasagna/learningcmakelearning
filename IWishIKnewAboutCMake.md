@@ -166,7 +166,7 @@ each CMake statement is giving a more direct command.
 #### Casing conventions
 
 Once upon a time it was considered good practice to have all your CMake commands
-in capitals, so.. rewriting the previous code block
+in capitals, so... rewriting the previous code block
 
 ```
 SET(MYPROJ_SOURCES main.cpp)
@@ -593,7 +593,7 @@ your code.
 
 The first reason is that _CONFIG_ packages are constituted of a few different
 files on one of them will be called something like `OpenCV-config-version.cmake`
-This _config-version_ file gives you power to control version compatibility. that
+This _config-version_ file gives you power to control version compatibility. That
 file enables you to tell users of your package whether they can expect to have
 compatibility broken never, on each different major version, for ever single
 version.... It also allows users to ask for a specific version and CMake will

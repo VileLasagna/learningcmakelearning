@@ -550,3 +550,206 @@ You can find more information about these on CMake's documentation,for
 [the add_library() command]("https://cmake.org/cmake/help/v3.8/command/add_library.html")
 
 #### Packages
+
+One of the first bits of "arcane magic" you may come in contact with when getting
+to grips and using CMake will probably be along the lines of something like this:
+
+```
+find_package(SDL)
+target_link_libraries(MyApp ${SDL_LIBRARIES})
+target_include_directories(MyApp ${SDL_INCLUDE_DIRS})
+
+```
+The whole `find_package()` thing is a very powerful and very common CMake thing.
+
+What that line does is call one of two CMake scripts. It'll look for either a
+`FindSDL.cmake` or a `SDL-config.cmake`
+
+The former is a legacy format. Though still used, it is being phased out. In
+CMake documentation this is known as a _MODULE_ package. CMake actually ships
+with a ton of these by default. You can check for them in [CMake's
+documentation]("https://cmake.org/cmake/help/v3.8/manual/cmake-modules.7.html")
+and have a look at the individual files in either CMake's installed folder or
+`/usr/share/cmake-<version>/Modules` depending on your OS.
+
+What these are in rough terms are scripts that in general work through calls of
+`find_library()` and  `find_path()` in order to try and locate the includes and
+library files related to the _package_ you're looking for. These files generally
+will set variables such as those in the example, so you can add the relevant
+commands to your own code.
+
+More modern however will be in the latter of those two formats. Those are called,
+conveniently, _CONFIG_ packages and in general do a bit more work. Some libraries
+will install their config scripts to your system when installed, for my system,
+for example (Arch Linux) the standard OpenCV package does this, and those files
+are located in `/usr/share/opencv`. I know that OpenCV also distributes these
+with their Windows binaries so that's somewhere you can look for a production
+example, so to speak.
+
+There are two main reasons why _CONFIG_ packages are better than _MODULE_
+packages, and that's not even going into the fact that they're much cleaner in
+your code.
+
+The first reason is that _CONFIG_ packages are constituted of a few different
+files on one of them will be called something like `OpenCV-config-version.cmake`
+This _config-version_ file gives you power to control version compatibility. that
+file enables you to tell users of your package whether they can expect to have
+compatibility broken never, on each different major version, for ever single
+version.... It also allows users to ask for a specific version and CMake will
+try to find it according to these rules.
+
+Second reason is more teaser material, sorry. I mentioned, back when I was
+talking about _targets_ that there's a thing called _property transitivity_ and
+_CONFIG_ packages are made to make use of that, and make your life much easier.
+What I'll say for now is that they make the process of using them much less
+error prone and simpler.
+
+Probably more exciting is the fact that it isn't too difficult for you to provide
+such packages for libraries of your own. CMake has a [CMakePackageConfigHelpers]("https://cmake.org/cmake/help/v3.8/module/CMakePackageConfigHelpers.html")
+module you can include to precisely help you with that. It's worth a look once
+you're ready to dive into this.
+
+#### *Source Folder* and *Binary Folder* (*List Folder* makes a return cameo)
+
+I jumped the gun a little bit and talked some about the source folder before
+but I'm putting everything together right now just for some perspective.
+
+When a developer hears **Source Folder** the pretty obvious response is
+
+> "OBVIOUSLY the folder with my source files"
+
+And for **Binary Folder**
+
+> "Pretty evidently the folder for my compiled binaries"
+
+And both are predictably wrong in this case.
+
+When CMake hears something like `CMAKE_CURRENT_SOURCE_DIR` what it means is,
+as mentioned before, the directory containing the _CMakeLists.txt_ for the root
+of the project currently opened.
+
+And while `CMAKE_CURRENT_BINARY_DIR` is a bit closer to what we'd expect, what
+it means is _"That folder where I'm going to write CMakeCache.txt and build all
+the things! ALL THE THINGS!"_.
+
+As we mentioned before too, the last one of these is `CMAKE_CURRENT_LIST_DIR`
+which is similar to current source dir, but relates to the CMakeLists file it
+is used in.
+
+No biggie for these, but a potential source of confusion.
+
+#### In-Source Builds vs Out-of-Source Builds
+
+> You want to build your projects _Out-of-source_. Always. Every project. FIN~
+
+That said AND being overwhelmingly true, what DOES it mean, though. Let's imagine
+
+```
+~ $ cd projects
+~/projects $ git clone <Google Protobuf's repo here> protobuf
+~/projects $ cd protobuf
+~/projects/protobuf $ cmake .
+
+```
+Besides the fact that you may be "oof, building protobuf. Coffee time..." that
+is pretty reasonable, especially considering CMake IS in fact protobuf's official
+build system. And while that is all fine, when I joked "ALL THE THINGS" that was
+sadly somewhat real. CMake will produce a TON of intermediate files and if what
+you did looks like that example, all of that will go right together with your
+project files and source code.
+
+This is what is called an **In-source build**, and you can find a project you
+know and build it and you'll see just how big of a mess it is. Some projects
+attempt to prevent in-source builds, but CMake will always generate some things
+before you can tell it to stop. So... do it once. On a controlled environment
+where you can marvel at the horror of what you've done and never ever do it
+again.
+
+Instead, what you want is something more like:
+
+```
+~ $ cd projects
+~/projects $ git clone <Google Protobuf's repo here> protobuf
+~/projects $ cd protobuf
+~/projects/protobuf  $ mkdir build
+~/projects/protobuf  $ cd build
+~/projects/protobuf/build $ cmake ..
+
+```
+
+What this achieves is that all that garbage gets put inside that _build_ folder.
+Keep in mind to do this, pain will ensue if you don't. I know both **QtCreator**
+and **Clion** do try and help you do this by default and **cmake-gui** does
+display a field for you to choose a build folder which should be separate.
+Just... keep in mind... no in-source if you intend to retain your sanity.
+
+#### install(EXPORT)  export(TARGETS)
+
+These two similarly-named commands mean annoyingly different things.
+You'll come across the first one a lot as it's a key command when generating
+packages. It creates the file that describes the targets you're exporting
+through said packages.
+
+`export(TARGETS)` works in a similar way except the file generated is specific t
+o the source tree it was generated in. So it's the same, except the
+complete opposite. Most of the time you want `install(EXPORT)` but [docs]("https://cmake.org/cmake/help/v3.8/command/export.html")
+give a few examples on where you might need the other. Just keep in mind that
+**export** will not provide you with files for creating packages
+
+### PUBLIC PRIVATE INTERFACE - The Magic Words of transitivity
+
+I've teased it a bit and now it's time to talk about this. It's really not
+particularly complicated but it ties up some of the stuff we mentioned before.
+
+Way back, when I mentioned targets, I had some example snippets like so:
+
+```
+add_executable(MyApp ${MYAPP_SOURCES})
+
+target_include_directories(MyApp <SomePath>/include)
+target_link_libraries(MyApp someDep)
+target_compile_definitions(MyApp "USE_DEP")
+
+```
+
+Well, the thing is, those are not 100% correct. Let's change this up a bit, and
+let's make _MyApp_ into _MyLib_ so that some of this can make better sense:
+
+```
+add_library(MyLib ${MYLIB_SOURCES})
+
+target_include_directories(MyLib PRIVATE <SomePath>/include)
+target_link_libraries(MyLib PUBLIC someDep)
+target_compile_definitions(MyLib INTERFACE "USE_DEP")
+
+```
+
+Now, what these keywords control is the **transitivity** of these properties.
+And the way this comes into play is when we re-introduce My app
+
+```
+add_executable(MyApp ${MYAPP_SOURCES})
+
+target_link_libraries(MyApp MyLib)
+
+```
+
+Now, when that `target_link_libraries()` happens, if _MyLib_ is a CMake
+**target**, either native or imported (say through a *find_package(CONFIG)*),
+CMake is going to make some magic happen.
+
+For us right here, it'll make sure that MyApp is built with `-DUSE_DEP` and also
+that it links in _someDep_. Properties on CMake targets live in two spaces, so to
+speak. There's the `PRIVATE` space which applies to your target when it is being
+built and the `INTERFACE` space which applies to projects that use it, say for
+MyApp when it "links in" MyLib.
+
+When something is declared `PUBLIC` it means it applies to both spaces. The target
+needs it and targets linking it in also need it.
+
+This mechanism drives a lot of the power behind how config-packages work, and
+you can set them for custom or imported targets as well. Once you got that set up
+smoothly, you can have other dependencies, your include paths, compile defines,
+compile options (/BigObj, -mavx2), language standard requirements ( must have
+cxx_constexpr)... all forwarded to targets that depend on your project, all set
+with just a `target_link_libraries()` call.

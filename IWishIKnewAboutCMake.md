@@ -125,7 +125,7 @@ what CMake is looking for in that directory.
 #### CMakeCache.txt - Your own little sandbox
 
 When CMake goes and processes your CMakeLists it creates a file called
-**CmakeCache.txt**. This file contains all the different variables as they are
+**CmakeCache.txt**. This file contains all the different CMake variables as they are
 configured specifically for that build of your project. So paths that might have
 been found, library names of detected dependencies, compiler flags, deployment
 paths....

@@ -625,13 +625,23 @@ And for **Binary Folder**
 
 And both are predictably wrong in this case.
 
-When CMake hears something like `CMAKE_CURRENT_SOURCE_DIR` what it means is,
+When CMake hears something like `CMAKE_SOURCE_DIR` what it means is,
 as mentioned before, the directory containing the _CMakeLists.txt_ for the root
-of the project currently opened.
+of the project currently opened, whereas `CMAKE_CURRENT_SOURCE_DIR` means the the
+directory containing the _CMakeLists.txt_ that is currently being processed:
 
-And while `CMAKE_CURRENT_BINARY_DIR` is a bit closer to what we'd expect, what
+```
+src/
+ - CMakeLists.txt (CMAKE_SOURCE_DIR = src/, CMAKE_CURRENT_SOURCE_DIR = src/)
+ - lib1/
+   - CMakeLists.txt (CMAKE_SOURCE_DIR = src/, CMAKE_CURRENT_SOURCE_DIR = src/lib1/)
+```
+
+And while `CMAKE_BINARY_DIR` is a bit closer to what we'd expect, what
 it means is _"That folder where I'm going to write CMakeCache.txt and build all
-the things! ALL THE THINGS!"_.
+the things! ALL THE THINGS!"_. `CMAKE_CURRENT_BINARY_DIR` follows the came rules of
+`CMAKE_CURRENT_SOURCE_DIR`. For every directory included with `add_subdirectory()`,
+a subfolder is created inside the `CMAKE_BINARY_DIR`, that folder is `CMAKE_CURRENT_BINARY_DIR`.
 
 As we mentioned before too, the last one of these is `CMAKE_CURRENT_LIST_DIR`
 which is similar to current source dir, but relates to the CMakeLists file it

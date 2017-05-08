@@ -128,7 +128,8 @@ When CMake goes and processes your CMakeLists it creates a file called
 **CmakeCache.txt**. This file contains all the different CMake variables as they are
 configured specifically for that build of your project. So paths that might have
 been found, library names of detected dependencies, compiler flags, deployment
-paths....
+paths, etc.
+
 This is the file you might have to tweak when, for instance, CMake tells you
 "I can't find openCV. Can you tell me where it is?". The main pane of the
 **cmake-gui** tool will show you precisely variables on that cache. And will

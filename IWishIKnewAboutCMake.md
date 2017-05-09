@@ -297,7 +297,7 @@ go in the CMake Options and tweaking the CMAKE_C_COMPILER option to point to
 the same thing as the CXX compiler. QtCreator will tell you that looks weird
 but will do it all the same, as it should. And you should be fine
 
-####JetBrains Clion
+#### JetBrains Clion
 
 Clion is a favourite among quite a few CMake veterans. It's yet another
 IDE JetBrains built on top of IntelliJ, their Java IDE and they seem to

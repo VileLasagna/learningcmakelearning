@@ -198,7 +198,7 @@ and helps them interpret all that through JSON. As it's recent, it's a work in
 progress, but it's bound to make it much easier for IDEs to support CMake
 natively.
 
-#### Integrated Development Environments
+### Integrated Development Environments
 
 And with that, we can talk a bit about IDEs themselves. Going all kate and bash
 is fine but a good IDE does help a lot in managing all the things and without
@@ -420,7 +420,7 @@ CMake, like any proper tool has it's own language which seems made to confuse
 any new users. And I feel that behind them are some of the important concepts to
 wrapping your head around how CMake works.
 
-#### Generators
+### Generators
 
 Generator are, in a way, the "templates" for CMake. CMake works in two steps:
 **Configure** and **Generate**.
@@ -444,7 +444,7 @@ the ones you get to install Qt itself from their website). You can check
 Cpack's own documentation and `cpack --help` for more info on those.
 
 
-#### Build Tree
+### Build Tree
 
 Way back I mentioned a CMake command called `add_subdirectory(SomeProj)`.
 That command does what it says on the tin, so speak, but it also exposes a
@@ -482,7 +482,7 @@ This becomes more relevant when you're talking about variables since variables
 set for a father node will be inherited by the child nodes etc... So projects
 don't necessarily exist in isolation.
 
-#### Target - The building block
+### Target - The building block
 
 This was probably one of the most "revealing" realizations for me personally.
 CMake revolves around **targets**. They are the fundamental block of how CMake
@@ -525,7 +525,7 @@ called _"Property transitivity"_ and that's where this will hit for real. But
 for now, keep in mind that your CMakeLists pretty much doesn't start until you
 declared your **target**, as that's what you'll need to tie all the things to.
 
-#### Library Types
+### Library Types
 
 Aside from the standard `STATIC` and `SHARED` libraries we've come to expect,
 CMake understands some additional types of libraries which you may want to be
@@ -550,7 +550,7 @@ aware of.
 You can find more information about these on CMake's documentation,for
 [the add_library() command]("https://cmake.org/cmake/help/v3.8/command/add_library.html")
 
-#### Packages
+### Packages
 
 One of the first bits of "arcane magic" you may come in contact with when getting
 to grips and using CMake will probably be along the lines of something like this:
@@ -610,7 +610,7 @@ such packages for libraries of your own. CMake has a [CMakePackageConfigHelpers]
 module you can include to precisely help you with that. It's worth a look once
 you're ready to dive into this.
 
-#### *Source Folder* and *Binary Folder* (*List Folder* makes a return cameo)
+### *Source Folder* and *Binary Folder* (*List Folder* makes a return cameo)
 
 I jumped the gun a little bit and talked some about the source folder before
 but I'm putting everything together right now just for some perspective.
@@ -705,7 +705,7 @@ Incidentally, you also have *CMAKE_CURRENT_LIST_FILE* as well as a
 like they should
 
 
-#### In-Source Builds vs Out-of-Source Builds
+### In-Source Builds vs Out-of-Source Builds
 
 > You want to build your projects _Out-of-source_. Always. Every project. FIN~
 
@@ -750,7 +750,7 @@ and **Clion** do try and help you do this by default and **cmake-gui** does
 display a field for you to choose a build folder which should be separate.
 Just... keep in mind... no in-source if you intend to retain your sanity.
 
-#### install(EXPORT)  export(TARGETS)
+### install(EXPORT)  export(TARGETS)
 
 These two similarly-named commands mean annoyingly different things.
 You'll come across the first one a lot as it's a key command when generating

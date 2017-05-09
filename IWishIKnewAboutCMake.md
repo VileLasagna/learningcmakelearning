@@ -821,3 +821,215 @@ smoothly, you can have other dependencies, your include paths, compile defines,
 compile options (/BigObj, -mavx2), language standard requirements ( must have
 cxx_constexpr)... all forwarded to targets that depend on your project, all set
 with just a `target_link_libraries()` call.
+
+
+## General Practics / Hints & Tips
+
+Like any other tool, there are always a few tricks here and there that can
+generally make your life a bit easier or provide a smart solution to an annoying
+situation. Here are a few I've picked up upon, some are generally well known and
+you're likely to have stumbled upon similar recommendations from other people,
+others I have figured out (still am?) the hard way.
+
+### Don't mangle your lists
+
+Let's start with one of them well known traps.
+
+Say you want to tell CMake to look for your packages in a certain path. You look
+up the docs and find out what variable teels it that. Easy peasy:
+
+`set(CMAKE_PREFIX_PATH <myPath>)`
+
+And that looks easy except you stop finding all the other things. And that makes
+sense once you realize that this is equivalent to:
+
+`CMAKE_PREFIX_PATH = <myPath>`
+
+and you really wanted:
+
+`CMAKE_PREFIX_PATH += <myPath>`
+
+So the equivalent in CMake for what you want is, instead:
+
+`set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} <myPath>)`
+
+Commands like `target_link_libraries` and `target_compile_definitions` explicitly
+state in the documentation that they keep adding more things. But be careful with
+`set()`. You may also want to consider using [`list()`]("https://cmake.org/cmake/help/v3.8/command/list.html")
+
+### Project Management and organization
+
+I guess everyone ends up having their own little preferences about this topic.
+Personally it's something I maybe tend to worry about even a bit too much.
+
+CMake helps a bit in shaping how you do this because of the tree structure. Let's
+revisit some of our old examples and talk a bit about it.
+
+```
+<SomePath>/OurProject
+              CMakeLists.txt
+              /myApp
+                  CMakeLists.txt
+              /myLib
+                  CMakeLists.txt
+```
+
+Something interesting about CMake is that in example, _myLib/CMakelists.txt_ could
+be a whole project on its own, independent from the rest of the tree. Whether to
+make it like that or not, it's your choice.
+
+Something I find useful, at times, though, is having the root CMakeLists used
+for managing the more general "project-wide" options such as installation dirs,
+options such as "build examples", or choosing components, the package generation
+stuff...
+
+Regarding which targets to define in which Lists, having more than one in a list
+can make for some tricky to manage files and it can make it harder to keep your
+files nicely readable. But if you think they DO belong together, either because
+they're all too small or because they share some of their sources maybe... things
+won't just fall apart because you're doing it, but be careful when you it and
+remember to ask yourself a couple of times if _"is this REALLY the best way to
+do this?"_
+
+Another "trick" you can do is in regard to your source files, but first:
+
+> Don't use GLOB for this. Just list them out one by one
+
+It's annoying but although it kinda works, it's sort of hacky and it can lead you
+to some trouble. GLOB is not magic and it generates at list when CMake is run.
+If anything changes, you'll need to go back to square one. Additionally you lose
+the ability to comment files in and out, all that thing. Just don't go there,
+regret will catch up to you sooner or later.
+
+What you CAN do instead should your sources become unsightly on your lists is
+move them to an include. So you could have a _myprojsources.cmake_
+
+`set(MYPROJ_SOURCES ${MYPROJ_SOURCES} <around 379 files here>)`
+
+and `include(myprojsources)` to have those sources moved to somewhere less
+awkward.
+
+You can see some CMake I don't hate on [Protobuf's repo](https://github.com/google/protobuf/tree/master/cmake)
+They don't use subdirectories but do use some includes to the same effect and
+it's pretty quick to see that a project of that size would get unwieldy pretty
+fast without some good organization.
+
+### Generator Expressions
+
+Generator Expressions are a handy feature that's been introduced in recent-ish
+versions of CMake. They're basically in-line text substitution functions which
+can help you make some pretty nifty tricks.
+
+They've got their own [documentation page](https://cmake.org/cmake/help/v3.8/manual/cmake-generator-expressions.7.html)
+as expected and it's well worth a look. A couple of them will be of very constant
+use if you're building a lot of libraries.
+
+### Includes
+
+There are maybe three things to talk about includes in CMake that are of some
+interest.
+
+The first one is that initially CMake doesn't care about header files. And it
+makes sense from a build system perspective. Header's don't generate object code,
+they're the preprocesor's problem and as long as _IT_ knows where to find those
+files, why should the build system ever care? So unless you explicitly tell CMake
+"Well, yeah, but I care about them" then don't expect to even see them.
+
+However we've moved past that, <current year argument here> and we decided CMake
+is so shiny we want to use it to even during development. So the first thing is
+that we need to tell CMake explicitly WE care about those headers. The traditional
+way of doing this is doing something which, after we realised CMake doesn't care
+about includes is wasteful and nonsensical. It's also something you might have
+seen elsewhere.
+
+```
+set(MYLIB_SOURCES ${MYLIB_SOURCES} class1.cpp class2.cpp class3.cpp)
+
+set(MYLIB_HEADERS ${MYLIB_HEADERS} class1.hpp class2.hpp class3.hpp)
+
+add_library(MyLib ${MYLIB_SOURCES} ${MYLIB_HEADERS})
+
+```
+
+And the truth of the fact is that listing those headers there makes no difference
+to CMake. but it generally WILL make a difference for IDEs reading your Lists.txt
+It's the traditional way of getting your headers to be properly displayed and listed
+on your IDE.
+
+There is another solution though, which is, in a way, more adequate.
+
+```
+set(MYLIB_SOURCES ${MYLIB_SOURCES} class1.cpp class2.cpp class3.cpp)
+
+set(MYLIB_HEADERS ${MYLIB_HEADERS} class1.hpp class2.hpp class3.hpp)
+
+add_custom_target(MyLib_Headers SOURCES ${MYLIB_HEADERS})
+
+add_library(MyLib ${MYLIB_SOURCES})
+
+install(FILES ${MYLIB_HEADERS} DESTINATION include)
+
+```
+
+The target added by [`add_custom_target()`](https://cmake.org/cmake/help/v3.8/command/add_custom_target.html)
+needs not be compiled, as it won't when there aren't any object files. But it will
+be listed, and so should your headers.
+
+And the last thing is more of a packaging consideration, perhaps. But given CMake
+provides you with so much control over how you're doing things, if your target
+is a library, you may want to consider splitting your headers into public and
+private headers. That way you can `install()` just the ones you want your users
+to see. Additionally, this is a good opportunity to remind you that _GLOB_ is a
+trap. So.. amending our snippet:
+
+```
+set(MYLIB_SOURCES ${MYLIB_SOURCES} class1.cpp class2.cpp class3.cpp)
+
+set(MYLIB_PUBLIC_HEADERS ${MYLIB_PUBLIC_HEADERS} class1.hpp class2.hpp)
+
+set(MYLIB_PRIVATE_HEADERS ${MYLIB_PRIVATE_HEADERS} class3.hpp)
+
+add_custom_target(MyLib_Headers SOURCES ${MYLIB_PUBLIC_HEADERS} ${MYLIB_PRIVATE_HEADERS})
+
+add_library(MyLib ${MYLIB_SOURCES})
+
+install(FILES ${MYLIB_PUBLIC_HEADERS} DESTINATION include)
+
+```
+
+### Don't use find_package(REQUIRED)
+
+Yeah, why not? If it is... required... then it should say there REQUIRED.
+
+What I propose is instead of
+
+`find_package(GLEW REQUIRED)`
+
+You write something like
+
+```
+
+find_package(GLEW)
+
+#Look for the set value in documentation
+if(NOT GLEW::GLEW)
+
+    message(WARNING "GLEW not found! Compiling will fail!")
+
+endif(NOT GLEW::GLEW)
+
+```
+
+And yeah, this looks verbose and dumb in comparison but this a decision I've come
+to the hard way. And I've decided to go there just to work around IDEs. That's
+not a CMake-based advice, really.
+
+If you've read my (rather extensive) comments on _Qt Creator_ you might remember
+that as much as I love their CMakeCache parser and editor, if Cmake configure
+fails, it'll just go "Well, this failed. Tough luck" and won't actually give you
+the chance to fix it (say, by setting GLEW_DIR, or appending CMAKE_PREFIX_PATH)
+
+You may want to experiment with this, but if you expect people to go that way,
+keep it in mind that a solution like this might provide them with a better way
+of getting the project set up on their environment, even if it DOES feel quite
+counter-intuitive.

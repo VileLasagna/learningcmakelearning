@@ -205,207 +205,208 @@ is fine but a good IDE does help a lot in managing all the things and without
 some good IDE support, even a good system will still be painful to use. So I'm
 using this section to talk about some of the strong and weak points of IDEs I've
 tried which have CMake support (or for which CMake has unilateral support).
-This DID turn out pretty long though so if you want a TL;DR: _"Qt Creator is
-amazing, use it. Clion is also really good, do consider it. Visual Studio is...
-geez, no need for martyrdom guise."_
 
- - **Qt Creator**
+> This DID turn out pretty long though so if you want a TL;DR: _"Qt Creator is
+> amazing, use it. Clion is also really good, do consider it. Visual Studio is...
+> geez, no need for martyrdom guise."_
 
-    This is what I've been using by and large. I'm a long fan of the IDE and
-    in general it is the measuring stick I apply to every other thing I come
-    across (_"hurr durr, I can go and download QtC for free. Are you even as
-    good as that?"_)
+#### Qt Creator
 
-    A disclaimer that this is what I use so it'll be overwhelmingly the one of
-    which I have the most to say. 100% objective and unbiased opinion, if you
-    use anything else you're just wrong and should use this instead.
+This is what I've been using by and large. I'm a long fan of the IDE and
+in general it is the measuring stick I apply to every other thing I come
+across (_"hurr durr, I can go and download QtC for free. Are you even as
+good as that?"_)
 
-    Qt Creator has long had support for CMake but I will say that my initial
-    contact, way back, was pretty disappointing. I felt a bit that the support
-    was kinda lack lustre and it was one of the things which kept me to QMake
-    (I guess Qt never made enough noise about Qbs to push me into learning that)
-    It's support has been steadily getting better and although some things still
-    have me disappointed such as the fact that if I want to create a new class
-    I have to pop Guake down and `touch newclass.{h,c}pp` and
-    then manually add them to the CMakeLists.
+A disclaimer that this is what I use so it'll be overwhelmingly the one of
+which I have the most to say. 100% objective and unbiased opinion, if you
+use anything else you're just wrong and should use this instead.
 
-    It's still disappointing but a small detail and the rest of what Qt Creator
-    offers has made me stick to it.
+Qt Creator has long had support for CMake but I will say that my initial
+contact, way back, was pretty disappointing. I felt a bit that the support
+was kinda lack lustre and it was one of the things which kept me to QMake
+(I guess Qt never made enough noise about Qbs to push me into learning that)
+It's support has been steadily getting better and although some things still
+have me disappointed such as the fact that if I want to create a new class
+I have to pop Guake down and `touch newclass.{h,c}pp` and
+then manually add them to the CMakeLists.
 
-    If you're not familiar, Qt Creator works with the concept of "kits". A kit
-    is a "collection of settings" which include
-     - A Qt version
-     - A C compiler
-     - A C++ compiler
-     - A debugger backend
-     - A deploy device (desktop, android phone...)
-     - A Cmake executable
-     - Some CMake configurations
-     - Possibly some alternative QMake configurations
+It's still disappointing but a small detail and the rest of what Qt Creator
+offers has made me stick to it.
 
-    That's a whole bunch of stuff and in those CMake configurations you can
-    specify which generators you want to use with that kit as well as any
-    additional defines you want to pass CMake. By default QT adds its own root
-    to the CMAKE_PREFIX_PATH as well as the exectuables for the compilers you've
-    set up in the kit and for the QMake executable associated with it.
+If you're not familiar, Qt Creator works with the concept of "kits". A kit
+is a "collection of settings" which include
+ - A Qt version
+ - A C compiler
+ - A C++ compiler
+ - A debugger backend
+ - A deploy device (desktop, android phone...)
+ - A Cmake executable
+ - Some CMake configurations
+ - Possibly some alternative QMake configurations
 
-    That already gives you some good help _but wait, there's more!_
+That's a whole bunch of stuff and in those CMake configurations you can
+specify which generators you want to use with that kit as well as any
+additional defines you want to pass CMake. By default QT adds its own root
+to the CMAKE_PREFIX_PATH as well as the exectuables for the compilers you've
+set up in the kit and for the QMake executable associated with it.
 
-    In addition to that Qt Creator has, on it's _Projects_ tab, a visual
-    parser of the CMakeCache which is pretty helpful when tweaking variables
-    and options for your build. It is very reminiscent (possibly most of the
-    very same code, I'd guess) of the _cmake-gui_ editor.
-    Finally, something that QtCreator always makes me miss on other IDEs is
-    the ability to set up custom build and deploy steps. Adding either
-    `cmake -- install` or `make package` (if you're using CPack) as a deploy
-    step is generally super helpful and something I myself may have got way too
-    used to as it's always something I look for (and often don't find) in other
-    environments. Combined with it being a pretty strong debugging frontend,
-    having native valgrind integration, great code completion, very configurable
-    editor with the best code highlighting I've seen anywhere... yeah, this IDE
-    is pretty amazing. It IS a very tall stick to measure things by.
+That already gives you some good help _but wait, there's more!_
 
-    That said it's not without its own flaws and annoyances.
+In addition to that Qt Creator has, on it's _Projects_ tab, a visual
+parser of the CMakeCache which is pretty helpful when tweaking variables
+and options for your build. It is very reminiscent (possibly most of the
+very same code, I'd guess) of the _cmake-gui_ editor.
+Finally, something that QtCreator always makes me miss on other IDEs is
+the ability to set up custom build and deploy steps. Adding either
+`cmake -- install` or `make package` (if you're using CPack) as a deploy
+step is generally super helpful and something I myself may have got way too
+used to as it's always something I look for (and often don't find) in other
+environments. Combined with it being a pretty strong debugging frontend,
+having native valgrind integration, great code completion, very configurable
+editor with the best code highlighting I've seen anywhere... yeah, this IDE
+is pretty amazing. It IS a very tall stick to measure things by.
 
-    I've mentioned CMake Server Mode earlier and Qt is jumping on it. So if you
-    intend to use Qt Creator to work with CMake, you DO want a version later
-    than **4.3** which, right now is in beta. You can look for the Qt blog post
-    on this if you're curious, but the support has got drastically better with
-    this version.
+That said it's not without its own flaws and annoyances.
 
-    That gui-like cache editor too, as helpful as it is, will not show up if
-    your CMake "configure" step fails, even if it'd be the easiest way to get
-    it working. It's driven at least one decision I've made regarding my own
-    CMake practices.
+I've mentioned CMake Server Mode earlier and Qt is jumping on it. So if you
+intend to use Qt Creator to work with CMake, you DO want a version later
+than **4.3** which, right now is in beta. You can look for the Qt blog post
+on this if you're curious, but the support has got drastically better with
+this version.
 
-    And... maybe stretching, but it does seem to have some annoying bug with
-    Clang+C2 toolchain on Windows (because of course) where kits configured
-    with that compiler will sometimes lose their configuration and you'll
-    notice the wrong compiler being called in the terminal. I don't know why
-    this happens but it is very much a Qt Creator bug in some way, not a CMake
-    related thing (it'll happen to your QMake projects as well, as the kit
-    itself needs to be fixed). For me that seems to happen every other time I
-    run the IDE. And it fails silently before by apparently failing to run
-    `vcvarsall.bat`. It's an easy fix, you just restart the IDE, make sure the
-    kits show as having no compiler set up, re-select the compiler from the
-    drop down menu and it'll work again as it should have the whole time. Again
-    this is specific to that toolchain in Windows so... I dunno. Additionally,
-    because QtCreator doesn't consider Clang+C2 a C compiler if that's what you
-    want to use (which you should if the other option is VC) you might want to
-    go in the CMake Options and tweaking the CMAKE_C_COMPILER option to point to
-    the same thing as the CXX compiler. QtCreator will tell you that looks weird
-    but will do it all the same, as it should. And you should be fine
+That gui-like cache editor too, as helpful as it is, will not show up if
+your CMake "configure" step fails, even if it'd be the easiest way to get
+it working. It's driven at least one decision I've made regarding my own
+CMake practices.
 
-- **JetBrains Clion**
+And... maybe stretching, but it does seem to have some annoying bug with
+Clang+C2 toolchain on Windows (because of course) where kits configured
+with that compiler will sometimes lose their configuration and you'll
+notice the wrong compiler being called in the terminal. I don't know why
+this happens but it is very much a Qt Creator bug in some way, not a CMake
+related thing (it'll happen to your QMake projects as well, as the kit
+itself needs to be fixed). For me that seems to happen every other time I
+run the IDE. And it fails silently before by apparently failing to run
+`vcvarsall.bat`. It's an easy fix, you just restart the IDE, make sure the
+kits show as having no compiler set up, re-select the compiler from the
+drop down menu and it'll work again as it should have the whole time. Again
+this is specific to that toolchain in Windows so... I dunno. Additionally,
+because QtCreator doesn't consider Clang+C2 a C compiler if that's what you
+want to use (which you should if the other option is VC) you might want to
+go in the CMake Options and tweaking the CMAKE_C_COMPILER option to point to
+the same thing as the CXX compiler. QtCreator will tell you that looks weird
+but will do it all the same, as it should. And you should be fine
 
-    Clion is a favourite among quite a few CMake veterans. It's yet another
-    IDE JetBrains built on top of IntelliJ, their Java IDE and they seem to
-    know their stuff because their IDEs seem to always be rated among the best
-    available for each one. Clion is no exception there. It is more closely
-    integrated with CMake than QtCreator. It has better completion and more
-    awareness of how the project should related to the CMakeLists. It is
-    definitely worth a check. From what I understand, JetBrains puts a lot
-    of value in making sure their IDE is helpful in getting tons of code
-    refactoring done easy. Things like adding inheritance on the fly, renaming
-    functions... If you're curious it might be interesting to search YouTube
-    for a "Clion Tips and Tricks" talk that happened at CppCon2015. It's 15
-    minutes long and looks pretty impressive if that's the way you like working.
-    JetBrains are also the people behind _ReSharper_ so their code completion
-    is pretty strong. I have considered this IDE pretty strongly a few times
-    but it unfortunately couldn't win me over yet. The points where it lacks,
-    either by itself or by comparison, are the following
+####JetBrains Clion
 
-     - Cache editor
+Clion is a favourite among quite a few CMake veterans. It's yet another
+IDE JetBrains built on top of IntelliJ, their Java IDE and they seem to
+know their stuff because their IDEs seem to always be rated among the best
+available for each one. Clion is no exception there. It is more closely
+integrated with CMake than QtCreator. It has better completion and more
+awareness of how the project should related to the CMakeLists. It is
+definitely worth a check. From what I understand, JetBrains puts a lot
+of value in making sure their IDE is helpful in getting tons of code
+refactoring done easy. Things like adding inheritance on the fly, renaming
+functions... If you're curious it might be interesting to search YouTube
+for a "Clion Tips and Tricks" talk that happened at CppCon2015. It's 15
+minutes long and looks pretty impressive if that's the way you like working.
+JetBrains are also the people behind _ReSharper_ so their code completion
+is pretty strong. I have considered this IDE pretty strongly a few times
+but it unfortunately couldn't win me over yet. The points where it lacks,
+either by itself or by comparison, are the following
 
-        Whereas Qt Creator has that nifty tool, Clion just gives you quick
-        access to open _CMakeCache.txt_ in their text editor quickly and work
-        from there. It's not bad, but knowing there can be much more, I keep
-        wanting more.
+ - Cache editor
 
-     - Custom build and deploy steps
+    Whereas Qt Creator has that nifty tool, Clion just gives you quick
+    access to open _CMakeCache.txt_ in their text editor quickly and work
+    from there. It's not bad, but knowing there can be much more, I keep
+    wanting more.
 
-        This is the deal breaker for me. Namely for not giving me access to
-        calling "install" from the IDE. It keeps sounding small but it's a thing
-        I find myself less and less willing to give away. _THAT SAID_ JetBrains
-        are aware people want this and there's a feature request being looked
-        at referring to this. So it may very well come in a version in the near
+ - Custom build and deploy steps
 
-     - No Support for Clang+C2
+    This is the deal breaker for me. Namely for not giving me access to
+    calling "install" from the IDE. It keeps sounding small but it's a thing
+    I find myself less and less willing to give away. _THAT SAID_ JetBrains
+    are aware people want this and there's a feature request being looked
+    at referring to this. So it may very well come in a version in the near
 
-        VC is a terrible compiler and no one should ever have to use it. So far,
-        so good, as Clion doesn't normally support VC. You have to enable it in
-        a hidden menu to remind you of the terrible mistake you're making. What
-        Clion gives you instead is the option of using either MinGW or Cygwin.
-        As far as I'm concerned that is fine and the way I want MY stuff to
-        happen when I need to deploy them to Windows. However the world is a big
-        place and sometimes you need to link to standard VC. Clion has support
-        for the VC toolchain, yes, but just the standard one. It goes ahead
-        and detects `cl.exe` and sets that up as your compiler and there's not
-        much you can do about it (that I have found, at least) which works, but
-        then you're using a horrible compiler that will make your life harder
-        and produce worse code.
+ - No Support for Clang+C2
 
-     - Eeeewwww, Java!
+    VC is a terrible compiler and no one should ever have to use it. So far,
+    so good, as Clion doesn't normally support VC. You have to enable it in
+    a hidden menu to remind you of the terrible mistake you're making. What
+    Clion gives you instead is the option of using either MinGW or Cygwin.
+    As far as I'm concerned that is fine and the way I want MY stuff to
+    happen when I need to deploy them to Windows. However the world is a big
+    place and sometimes you need to link to standard VC. Clion has support
+    for the VC toolchain, yes, but just the standard one. It goes ahead
+    and detects `cl.exe` and sets that up as your compiler and there's not
+    much you can do about it (that I have found, at least) which works, but
+    then you're using a horrible compiler that will make your life harder
+    and produce worse code.
 
-        Jokes aside, the fact that IntelliJ, is built on Java, makes that a
-        feature of every JetBrains IDE which might mean some systems may
-        struggle a bit with it. I say this not from a theoretical point of
-        view but from an empyrical one. Currently I call my  main development
-        machine at home _"Crappy Lappy"_ and that name is pretty adequate (if
-        you wonder how crappy, [It's one of these](https://support.hp.com/nz-en/document/c05243218 "Official specs") )
-        It seems to struggle quite a bit with Clion parsing all the things.
-        Not sensible on a properly powerful dev machine but, apparently we
-        can't always have one handy. Again, comparatively, Qt Creator seems
-        to be easier on it.
+ - Eeeewwww, Java!
 
-     - It costs real moneys
+    Jokes aside, the fact that IntelliJ, is built on Java, makes that a
+    feature of every JetBrains IDE which might mean some systems may
+    struggle a bit with it. I say this not from a theoretical point of
+    view but from an empyrical one. Currently I call my  main development
+    machine at home _"Crappy Lappy"_ and that name is pretty adequate (if
+    you wonder how crappy, [It's one of these](https://support.hp.com/nz-en/document/c05243218 "Official specs") )
+    It seems to struggle quite a bit with Clion parsing all the things.
+    Not sensible on a properly powerful dev machine but, apparently we
+    can't always have one handy. Again, comparatively, Qt Creator seems
+    to be easier on it.
 
-        Clion is not crazy expensive and the from what I've used of the IDE,
-        it's money very well spent. When I've looked at it it hasn't been the
-        greatest factor in me not going for it, but it's there, every penny it
-        costs is a penny it costs over what QtCreator costs, and as I said, that
-        is an excellent IDE you're getting. So... there's that factor as well.
-        They do offer open source licenses if you contribute to Open projects
-        and have a 30 day trial I've probably taken two or three times now. So
-        it's easy to check it and see if it works for you.
+ - It costs real moneys
 
- - **Visual Studio**
+    Clion is not crazy expensive and the from what I've used of the IDE,
+    it's money very well spent. When I've looked at it it hasn't been the
+    greatest factor in me not going for it, but it's there, every penny it
+    costs is a penny it costs over what QtCreator costs, and as I said, that
+    is an excellent IDE you're getting. So... there's that factor as well.
+    They do offer open source licenses if you contribute to Open projects
+    and have a 30 day trial I've probably taken two or three times now. So
+    it's easy to check it and see if it works for you.
 
-    Have a penny, go download a good IDE.
+#### Visual Studio
 
-    Jokes about VS being horrible aside (it's not, it's just pretty bad) if you
-    do want to use it, CMake helps you a lot. One of the available generators
-    for Windows is called _Visual Studio <someVer> <SomeYear>_ and what it does
-    for you is generate a Visual Studio solution for you to work on. I can't
-    tell you much about it because once I knew Qt Creator I just could never
-    go back to Visual Studio without being completely horrified at it so there's
-    about 6 years I don't really use that IDE much any more but the generated
-    solution is actually really good, I've been told. It tracks changes to the
-    CMakeLists and helps a bit with that. I've also heard rumours that _VS 2017_
-    might have actual CMake support and I would imagine that is pretty good news
-    as far as I'm concerned since solutions and msbuild are one of the things I
-    abhor in the IDE. But, again, given I avoid it as much as I can, I'm
-    potentially not qualified to talk meaningful details about this, nor confirm
-    the truth in this.
+Have a penny, go download a good IDE.
 
-    So if you want to insist on this, you probably want to open your project
-    with **cmake-gui** and picking the right version of Visual Studio from the
-    available generators and then open the solution with the IDE.
+Jokes about VS being horrible aside (it's not, it's just pretty bad) if you
+do want to use it, CMake helps you a lot. One of the available generators
+for Windows is called _Visual Studio <someVer> <SomeYear>_ and what it does
+for you is generate a Visual Studio solution for you to work on. I can't
+tell you much about it because once I knew Qt Creator I just could never
+go back to Visual Studio without being completely horrified at it so there's
+about 6 years I don't really use that IDE much any more but the generated
+solution is actually really good, I've been told. It tracks changes to the
+CMakeLists and helps a bit with that. I've also heard rumours that _VS 2017_
+might have actual CMake support and I would imagine that is pretty good news
+as far as I'm concerned since solutions and msbuild are one of the things I
+abhor in the IDE. But, again, given I avoid it as much as I can, I'm
+potentially not qualified to talk meaningful details about this, nor confirm
+the truth in this.
 
- - **Code::Blocks** and **KDevelop**
+So if you want to insist on this, you probably want to open your project
+with **cmake-gui** and picking the right version of Visual Studio from the
+available generators and then open the solution with the IDE.
 
-    VS is an IDE I have barely touched in years. CodeBlocks is an IDE I have
-    barely used at all so, again this is something I can't comment deeply on
-    but if it's something you've used and/or liked, this another "project"
-    generator that CMake provides.
+#### *Code::Blocks* and *KDevelop*
 
-    There is also one for KDevelop on Linux, so another possibility to be
-    checked out if you're comfortable there.
+VS is an IDE I have barely touched in years. CodeBlocks is an IDE I have
+barely used at all so, again this is something I can't comment deeply on
+but if it's something you've used and/or liked, this another "project"
+generator that CMake provides.
 
-    There are a few more also listed but these keep slipping more
-    and more distant from my own familiarity. I'm mentioning them more on this
-    idea that, they're a thing, if you like it, you might want to check it out.
-    You can look for more information on [CMake's official docs](https://cmake.org/cmake/help/v3.8/manual/cmake-generators.7.html "Cmake-generators")
+There is also one for KDevelop on Linux, so another possibility to be
+checked out if you're comfortable there.
+
+There are a few more also listed but these keep slipping more
+and more distant from my own familiarity. I'm mentioning them more on this
+idea that, they're a thing, if you like it, you might want to check it out.
+You can look for more information on [CMake's official docs](https://cmake.org/cmake/help/v3.8/manual/cmake-generators.7.html "Cmake-generators")
 
 ## Lexicon - all the mumbo-jumbo
 

@@ -591,7 +591,7 @@ aware of.
     common one.
 
 You can find more information about these on CMake's documentation,for
-[the add_library() command]("https://cmake.org/cmake/help/v3.8/command/add_library.html")
+[the add_library() command](https://cmake.org/cmake/help/v3.8/command/add_library.html)
 
 ### Packages
 
@@ -611,8 +611,7 @@ What that line does is call one of two CMake scripts. It'll look for either a
 
 The former is a legacy format. Though still used, it is being phased out. In
 CMake documentation this is known as a _MODULE_ package. CMake actually ships
-with a ton of these by default. You can check for them in [CMake's
-documentation]("https://cmake.org/cmake/help/v3.8/manual/cmake-modules.7.html")
+with a ton of these by default. You can check for them in [CMake's documentation](https://cmake.org/cmake/help/v3.8/manual/cmake-modules.7.html)
 and have a look at the individual files in either CMake's installed folder or
 `/usr/share/cmake-<version>/Modules` depending on your OS.
 
@@ -649,7 +648,7 @@ What I'll say for now is that they make the process of using them much less
 error prone and simpler.
 
 Probably more exciting is the fact that it isn't too difficult for you to provide
-such packages for libraries of your own. CMake has a [CMakePackageConfigHelpers]("https://cmake.org/cmake/help/v3.8/module/CMakePackageConfigHelpers.html")
+such packages for libraries of your own. CMake has a [CMakePackageConfigHelpers](https://cmake.org/cmake/help/v3.8/module/CMakePackageConfigHelpers.html)
 module you can include to precisely help you with that. It's worth a look once
 you're ready to dive into this.
 
@@ -802,7 +801,7 @@ through said packages.
 
 `export(TARGETS)` works in a similar way except the file generated is specific t
 o the source tree it was generated in. So it's the same, except the
-complete opposite. Most of the time you want `install(EXPORT)` but [docs]("https://cmake.org/cmake/help/v3.8/command/export.html")
+complete opposite. Most of the time you want `install(EXPORT)` but [docs](https://cmake.org/cmake/help/v3.8/command/export.html)
 give a few examples on where you might need the other. Just keep in mind that
 **export** will not provide you with files for creating packages
 
@@ -897,7 +896,7 @@ So the equivalent in CMake for what you want is, instead:
 
 Commands like `target_link_libraries` and `target_compile_definitions` explicitly
 state in the documentation that they keep adding more things. But be careful with
-`set()`. You may also want to consider using [`list()`]("https://cmake.org/cmake/help/v3.8/command/list.html")
+`set()`. You may also want to consider using [`list()`](https://cmake.org/cmake/help/v3.8/command/list.html)
 
 ### Project Management and organization
 
@@ -1096,7 +1095,7 @@ to help you create those packages. But, how do you go about it?
 
 That page has an example which looks pretty small but actually tells you most of
 what you need to know. For the extra bits, lemme copypasta some code from
-[Warp Drive's CMakeLists.txt]("https://github.com/VileLasagna/WarpDrive/blob/dEffectiveMotor/WarpDrive/CMakeLists.txt")
+[Warp Drive's CMakeLists.txt](https://github.com/VileLasagna/WarpDrive/blob/dEffectiveMotor/WarpDrive/CMakeLists.txt)
 , a project I maintain to study on my spare time and which I've converted to use
 Cmake as well.
 
@@ -1210,7 +1209,7 @@ The _DESTINATION_ for all those `install()` is a relative path. It is appended
 to a variable called _CMAKE_INSTALL_PREFIX_. That variable is what you need to
 `set` to where you want to install.
 
-The next call is an [`install(TARGETS)`]("https://cmake.org/cmake/help/v3.8/command/install.html#installing-targets")
+The next call is an [`install(TARGETS)`](https://cmake.org/cmake/help/v3.8/command/install.html#installing-targets)
 What it does is install the output files of the listed targets according to
 their type. So executables on X, libraries on Y... whatever you decide. If you
 are unlucky to be in Windows, iot helps you a bit as it considers DLLs as
@@ -1271,7 +1270,7 @@ But to ensure that your packages are relocatable there are a few things you
 must be careful about.
 
 It's also worth a read (and by that I mean, you're going to end up here anyway
-at one point or several in the future) on the [documentation]("https://cmake.org/cmake/help/v3.8/manual/cmake-packages.7.html#creating-relocatable-packages")
+at one point or several in the future) on the [documentation](https://cmake.org/cmake/help/v3.8/manual/cmake-packages.7.html#creating-relocatable-packages)
 that deals specifically with this. But here's the gist of their advice, and
 some of my own.
 
@@ -1316,8 +1315,8 @@ your client and make sure it's all there but those are always a pain to set up?
 
 Done.
 
-[CPack]("https://cmake.org/cmake/help/v3.8/manual/cpack.1.html") can be called
-from the command line as a separate tool but you can also [`include(CPack)`]("https://cmake.org/cmake/help/v3.8/module/CPack.html")
+[CPack](https://cmake.org/cmake/help/v3.8/manual/cpack.1.html) can be called
+from the command line as a separate tool but you can also [`include(CPack)`](https://cmake.org/cmake/help/v3.8/module/CPack.html)
 the module. And it'll get things more or less set up for you. Just like you'd
 `make install` to get your files copied, if you're using the CPack module you
 can instead `make package` and it'll pack your things up for you. By default,
@@ -1330,7 +1329,7 @@ compress your files and create the archive for you, it can also give you a
 checksum for your generated file. There are some platform-specific options but
 those are for losers anyway. Instead, you can download Qt's Installer Framework
 and CPack works with that. It's even getting better and there's a specific
-[module]("https://cmake.org/cmake/help/v3.8/module/CPackIFW.html") for it if you
+[module](https://cmake.org/cmake/help/v3.8/module/CPackIFW.html) for it if you
 want specific configuration of that installer.
 
 **IFW** is definitely my recommendation if you want to make a visual installer.
@@ -1346,12 +1345,12 @@ A few generators (IFW included) support component installation. Again, if you've
 installed Qt using the online installer (which should be the way you install Qt
 always) you've probably seen the huge tree of things you can choose to install.
 So you CAN produce complex installations like that if you have tons of optional
-components. [CMake wiki]("https://cmake.org/Wiki/CMake:Component_Install_With_CPack")
+components. [CMake wiki](https://cmake.org/Wiki/CMake:Component_Install_With_CPack)
 is quite out of date for the msot part, but their examples are still pretty good
 and they do talk some about this so a valid resource if you're interested in this.
 
 If you _ARE_ going the route of multiple CPack generators and/or going all out
-on all the details of the configuration (seriously, [this]("https://cmake.org/Wiki/CMake:CPackConfiguration")
+on all the details of the configuration (seriously, [this](https://cmake.org/Wiki/CMake:CPackConfiguration)
 is just the common settings, for the general parts. You can go pretty deep here)
 you probably want to consider using separate CPack config files and you want to
 spend some time in the official docs looking for how to get that nice and polished

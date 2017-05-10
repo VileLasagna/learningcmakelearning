@@ -42,6 +42,10 @@ Table of Contents
     * [Generator Expressions](#generator-expressions)
     * [Includes](#includes)
     * [Don't use find\_package(REQUIRED)](#dont-use-find_packagerequired)
+  * [Packaging and redistribution](#packaging-and-redistribution)
+    * [Creating your own packages](#creating-your-own-packages)
+    * [Relocatable packages](#relocatable-packages)
+    * [CPack](#cpack)
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc.go)
 
@@ -1071,3 +1075,288 @@ You may want to experiment with this, but if you expect people to go that way,
 keep it in mind that a solution like this might provide them with a better way
 of getting the project set up on their environment, even if it DOES feel quite
 counter-intuitive.
+
+## Packaging and redistribution
+
+To me this is one of the most exciting aspects of CMake, so I've decided to set
+aside a section just for talking a bit about some of the aspects of this.
+
+### Creating your own packages
+
+I intended to talk a bit about MODULE packages vs CONFIG packages but I already
+did a bit and there is basically just one thing to talk about module packages
+at this point I guess.
+
+> Module packages are a thing of the past and they should remain in the past
+
+There you go. So let's talk a bit more about creating you own packages.
+
+I've also mentioned CMake provides a [helper module](https://cmake.org/cmake/help/v3.8/module/CMakePackageConfigHelpers.html)
+to help you create those packages. But, how do you go about it?
+
+That page has an example which looks pretty small but actually tells you most of
+what you need to know. For the extra bits, lemme copypasta some code from
+[Warp Drive's CMakeLists.txt]("https://github.com/VileLasagna/WarpDrive/blob/dEffectiveMotor/WarpDrive/CMakeLists.txt")
+, a project I maintain to study on my spare time and which I've converted to use
+Cmake as well.
+
+```
+
+# Install all public headers to the correct folders
+
+install(FILES   ${WARPDRIVE_HEADERS_3DMATHS}
+                DESTINATION include/WarpDrive/3dmaths       )
+install(FILES   ${WARPDRIVE_HEADERS_BASEMATHS}
+                DESTINATION include/WarpDrive/basemaths     )
+install(FILES   ${WARPDRIVE_HEADERS_SYSTEM}
+                DESTINATION include/WarpDrive/basesystem    )
+install(FILES   ${WARPDRIVE_HEADERS_DISPLAY}
+                DESTINATION include/WarpDrive/display       )
+install(FILES   ${WARPDRIVE_HEADERS_EVENTS}
+                DESTINATION include/WarpDrive/events        )
+install(FILES   ${WARPDRIVE_HEADERS_PHYSICS}
+                DESTINATION include/WarpDrive/physics       )
+install(FILES   ${WARPDRIVE_HEADERS_SOUND}
+                DESTINATION include/WarpDrive/sound         )
+
+install(    TARGETS WarpDrive
+            EXPORT  WarpDrive-targets
+            RUNTIME DESTINATION bin
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib
+            COMPONENT WarpDrive
+        )
+
+
+################################################################
+###     Package Creation
+################################################################
+
+
+include(CMakePackageConfigHelpers)
+configure_package_config_file(
+    cmake-src/WarpDrive-config.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/WarpDrive-config-tmp
+    INSTALL_DESTINATION ${WarpDrive_INSTALL_DIR}
+    PATH_VARS INCLUDE_INSTALL_DIR LIB_INSTALL_DIR
+    )
+
+write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/WarpDrive-config-version.cmake
+    VERSION ${WarpDrive_VERSION}
+    COMPATIBILITY ExactVersion
+    )
+
+install( FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/WarpDrive-config-version.cmake
+    RENAME WarpDrive-config-version.cmake
+    DESTINATION ${WarpDrive_INSTALL_DIR}
+    )
+
+install( FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/WarpDrive-config-tmp
+    RENAME WarpDrive-config.cmake
+    DESTINATION ${WarpDrive_INSTALL_DIR}
+    )
+
+install(EXPORT WarpDrive-targets DESTINATION ${WarpDrive_INSTALL_DIR})
+
+```
+
+And that code includes a certain `WarpDrive-config.cmake.in` that reads:
+
+```
+
+set(WARPDRIVE_VERSION "@WARPDRIVE_VERSION_VERSION@")
+
+
+@PACKAGE_INIT@
+
+set_and_check(WARPDRIVE_INCLUDE_DIR "@PACKAGE_INCLUDE_INSTALL_DIR@")
+set_and_check(WARPDRIVE_LIBRARY_DIR "@PACKAGE_LIB_INSTALL_DIR@")
+
+check_required_components(WarpDrive)
+
+if (NOT TARGET WarpDrive)
+  include(${CMAKE_CURRENT_LIST_DIR}/WarpDrive-targets.cmake)
+endif()
+
+```
+
+And REALLY is the entire file.
+
+Once CMake runs through all of that, it generates 4 files:
+
+```
+
+WarpDrive-config.cmake
+WarpDrive-config-version.cmake
+WarpDrive-targets.cmake
+WarpDrive-targets-<buildtype>.cmake
+
+```
+
+Plus, it copies my library files and my includes to the correct locations.
+
+So... let's run over that CMakeLists
+
+First thing that happens is that it copies a bunch of headers to a bunch of
+different folders. It's only a bunch of statements because I have some headers
+in the original folders I don't deploy. If you can narrow what you want to a
+regexp, you can use `install(DIRECTORY)` which will copy the folder structure
+for you.
+
+The _DESTINATION_ for all those `install()` is a relative path. It is appended
+to a variable called _CMAKE_INSTALL_PREFIX_. That variable is what you need to
+`set` to where you want to install.
+
+The next call is an [`install(TARGETS)`]("https://cmake.org/cmake/help/v3.8/command/install.html#installing-targets")
+What it does is install the output files of the listed targets according to
+their type. So executables on X, libraries on Y... whatever you decide. If you
+are unlucky to be in Windows, iot helps you a bit as it considers DLLs as
+RUNTIME targets. So you .lib goes to your LIBRARY destination but your dll is
+copied to the same folder as your .exe, as Windows would expect it.
+
+That command also takes a _EXPORT_ parameter. That EXPORT is part of the final
+config files and if you go back you'll see that the very final call there is
+an `install(EXPORT)`. Those files have the information about the targets you're
+installing. They know what the libraries are called, register the transitive
+properties you've set for them...
+
+The statements in the middle create the "entry points" so to speak. The first
+one, `configure_package_config_file()` tells the module you've just included
+(you... DID include the module, right?) to process that _.cmake.in_ we give it
+and it basically writes down where to find stuff, either relative to your file
+or in absolute (say you want something on /etc)
+
+You DO need to set those paths though through, say
+
+```
+
+set(LIB_INSTALL_DIR lib)
+set(INCLUDE_INSTALL_DIR include)
+
+```
+
+That module is a bit picky with the names of the variables and how it expects
+them. I know it looks simple enough but it's given me a bit of annoyance when
+I went and tried to use custom names so, consider treating those as "magical
+names" to stay on the easy road.
+
+The second command is also interesting. `write_basic_package_version_file()` is
+what gives you the chance to control compatibility for your package. In my case
+I don't give much of a thought when it comes to breaking the API of this code
+since it's something I'm the only person likely to seriously use. So I state
+`COMPATIBILITY ExactVersion`. Now, the person who is using your library might
+not know or care what version they have, it's THE ONE THEY HAVE. And even that
+compatibility flag will not hinder them. Asking for a version when you **find**
+a config package is optional. But if you do, the file that comes from that
+statement will let you know if you're good.
+
+And after that it's just copying the files. It is pretty clean and satisfying
+and if everything IS correct, you get a nice redistributable. All that's left
+then is to "package" it.
+
+Do notice that we never set any variables like _WARPDRIVE_LIBRARIES_ or
+_WARPDRIVE_INCLUDE_DIRS_ like you would expect. Because we're exporting the
+targets from CMake, these are all defined in those targets properties. Well,
+as long as whoever's using them IS using CMake. If they're not, then it's the
+old school way.
+
+### Relocatable packages
+
+Well... if your packages can't be used outside your own dev environment or, the
+build tree that spawned them then there's not a lot of point to them, right?
+But to ensure that your packages are relocatable there are a few things you
+must be careful about.
+
+It's also worth a read (and by that I mean, you're going to end up here anyway
+at one point or several in the future) on the [documentation]("https://cmake.org/cmake/help/v3.8/manual/cmake-packages.7.html#creating-relocatable-packages")
+that deals specifically with this. But here's the gist of their advice, and
+some of my own.
+
+What you want for these packages is to never have hard-coded paths in them and
+that can be a bit tricky. Well, an exception is if you really need to install
+something to a different folder, like we mentioned with `/etc` but even the
+install prefix might change... maybe your user doesn't want that on `/usr` and
+decides to put that in `/opt`
+If your hardcoded your include paths to `/usr/include` your package is just
+broken now.
+
+This is a place where **generator expressions** come to the rescue. Specifically,
+there's a pair you're very likely to use all the time:
+
+```
+target_include_directories(${PROJECT_NAME} PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/..>
+     $<INSTALL_INTERFACE:include>)
+
+```
+
+What these mean is "If you're building this, use this one, but if you're installing
+this, use the other one." Each gets substituted by an empty string on the other
+step.
+This enables you to more easily deal with whatever situation your working environment
+might be in so you can match what you want. And for the build interface it's 100%
+okay to have a hard path... and the one I have there, that _CURRENT_LIST_DIR_ that
+DOES get expanded to a hard path.
+
+Something to also keep in mind is that if your library is a static library and it
+has dependencies, those haven't been linked so those dependencies must be forwarded
+through _INTERFACE_ and that also means your users will need to `find_package()`
+your dependencies so this can be annoying so if you depend on stuff other than
+windows libraries or OpenGL... consider distributing shared library binaries.
+
+### CPack
+
+Ever wanted to create an installer with all your 46 things you need to get to
+your client and make sure it's all there but those are always a pain to set up?
+
+`include(CPack)`
+
+Done.
+
+[CPack]("https://cmake.org/cmake/help/v3.8/manual/cpack.1.html") can be called
+from the command line as a separate tool but you can also [`include(CPack)`]("https://cmake.org/cmake/help/v3.8/module/CPack.html")
+the module. And it'll get things more or less set up for you. Just like you'd
+`make install` to get your files copied, if you're using the CPack module you
+can instead `make package` and it'll pack your things up for you. By default,
+CPack packages up everything you called `install()` on so you really just add
+it to a project if you've been doing all the stuff I've talked about, you don't
+really build anything else around it.
+
+CPack has its own set of generators. **7Z** (or plain old _ZIP_) will just
+compress your files and create the archive for you, it can also give you a
+checksum for your generated file. There are some platform-specific options but
+those are for losers anyway. Instead, you can download Qt's Installer Framework
+and CPack works with that. It's even getting better and there's a specific
+[module]("https://cmake.org/cmake/help/v3.8/module/CPackIFW.html") for it if you
+want specific configuration of that installer.
+
+**IFW** is definitely my recommendation if you want to make a visual installer.
+It's pretty literally an installer exactly like the one you get for any version
+of Qt you Download. Cpack will bundle everything and generate you an offline
+installer. The _ONE_ downside is that IFW doesn't support CLI installing so if
+you need that then you might want to generate another pack...
+
+Good news is you can have your cake and eat it too. `set(CPACK_GENERATOR "7Z;IFW")`
+will conveniently enough have CPack generate both packs.
+
+A few generators (IFW included) support component installation. Again, if you've
+installed Qt using the online installer (which should be the way you install Qt
+always) you've probably seen the huge tree of things you can choose to install.
+So you CAN produce complex installations like that if you have tons of optional
+components. [CMake wiki]("https://cmake.org/Wiki/CMake:Component_Install_With_CPack")
+is quite out of date for the msot part, but their examples are still pretty good
+and they do talk some about this so a valid resource if you're interested in this.
+
+If you _ARE_ going the route of multiple CPack generators and/or going all out
+on all the details of the configuration (seriously, [this]("https://cmake.org/Wiki/CMake:CPackConfiguration")
+is just the common settings, for the general parts. You can go pretty deep here)
+you probably want to consider using separate CPack config files and you want to
+spend some time in the official docs looking for how to get that nice and polished
+
+Anyways it is a pretty fantastic tool and though I mentioned only a couple, if
+you want it does have a ton of other generators (NSIS, DEB, RPM, <inser a couple
+Apple things I neither know nor care here>...) and the fact that it's integrated
+on your build system is really amazing.

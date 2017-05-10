@@ -7,6 +7,44 @@ learning priority queue. So why the heck CMake, then? Which sounds like a silly
 question to be asked of anyone actually reading through something like this,
 maybe.
 
+Table of Contents
+=================
+
+
+  * [Foreword: Do I actually want to use CMake?](#foreword-do-i-actually-want-to-use-cmake)
+  * [How is <em>THIS</em> document any special?](#how-is-this-document-any-special)
+    * [TL;DR](#tldr)
+  * [The Basics](#the-basics)
+      * [What IS CMake?](#what-is-cmake)
+      * [CMakeLists\.txt \- The source of it all](#cmakeliststxt---the-source-of-it-all)
+      * [CMakeCache\.txt \- Your own little sandbox](#cmakecachetxt---your-own-little-sandbox)
+      * [A function based build system](#a-function-based-build-system)
+      * [Casing conventions](#casing-conventions)
+      * [Server Mode](#server-mode)
+      * [Integrated Development Environments](#integrated-development-environments)
+       * [Qt Creator](#qt-creator)
+       * [JetBrains Clion](#jetbrains-clion)
+       * [Visual Studio](#visual-studio)
+       * [<em>Code::Blocks</em> and <em>KDevelop</em>](#codeblocks-and-kdevelop)
+  * [Lexicon \- all the mumbo\-jumbo](#lexicon---all-the-mumbo-jumbo)
+    * [Generators](#generators)
+    * [Build Tree](#build-tree)
+    * [Target \- The building block](#target---the-building-block)
+    * [Library Types](#library-types)
+    * [Packages](#packages)
+    * [<em>Source Folder</em> and <em>Binary Folder</em> (<em>List Folder</em> makes a return cameo)](#source-folder-and-binary-folder-list-folder-makes-a-return-cameo)
+    * [In\-Source Builds vs Out\-of\-Source Builds](#in-source-builds-vs-out-of-source-builds)
+    * [install(EXPORT)  export(TARGETS)](#installexport--exporttargets)
+    * [PUBLIC PRIVATE INTERFACE \- The Magic Words of transitivity](#public-private-interface---the-magic-words-of-transitivity)
+  * [General Practics / Hints &amp; Tips](#general-practics--hints--tips)
+    * [Don't mangle your lists](#dont-mangle-your-lists)
+    * [Project Management and organization](#project-management-and-organization)
+    * [Generator Expressions](#generator-expressions)
+    * [Includes](#includes)
+    * [Don't use find\_package(REQUIRED)](#dont-use-find_packagerequired)
+
+Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc.go)
+
 ## Foreword: Do I actually want to use CMake?
 
 Well, if you're still debating whether it's worth or not to learn CMake and use

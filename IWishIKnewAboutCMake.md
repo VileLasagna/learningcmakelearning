@@ -3,9 +3,13 @@
 # Some stuff I wish I was taught straight away about CMake
 
 It was a long time coming but finally I had an excuse to push CMake up my
-learning priority queue. So why the heck CMake, then? Which sounds like a silly
-question to be asked of anyone actually reading through something like this,
-maybe.
+learning priority queue. It's a tool I long respected and now it's certainly
+my weapon of choice when it comes to build systems. But it can be quite
+annoying to learn and following ye olde "not made here syndrome" I've 
+decided to go ahead and write down some of the things that I not only
+find important, but also that I find can go somewhat unsaid when you're
+learning CMake "in the wild" as a lot it is just "assumed" from you, the
+learner. Well, here's how I'd put it...
 
 Table of Contents
 =================

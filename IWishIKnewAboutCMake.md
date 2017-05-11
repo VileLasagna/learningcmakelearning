@@ -81,7 +81,7 @@ linking somewhat sane. I'll talk a bit more about them later but, TL;DR:
 
  > Oh no! Now I have to sort out THIS and link it in?
  >
- >  ```
+ >  ```cmake
  > find_package(SomeMonster)
  > target_link_libraries(MyLovelyProject SomeMonster)
  >  ```
@@ -198,7 +198,7 @@ If you compare CMake to QMake (which I often do given QMake is a system I've
 used for quite a while) there is a "philosophical" difference between them.
 Where as in QMake you'd say something like:
 
-```
+```qmake
 SOURCES += main.cpp
 TARGET = MyProj
 LIBS += -lSomeLib
@@ -207,7 +207,7 @@ DEFINES += MyDef
 
 in CMake, the equivalent is something more like:
 
-```
+```cmake
 set(MYPROJ_SOURCES main.cpp)
 add_executable(MyProj ${MYPROJ_SOURCES})
 target_link_libraries(MyProj SomeLib)
@@ -226,7 +226,7 @@ direct command.
 Once upon a time it was considered good practice to have all your CMake commands
 in capitals, so... rewriting the previous code block
 
-```
+```cmake
 SET(MYPROJ_SOURCES main.cpp)
 ADD_EXECUTABLE(MyProj ${MYPROJ_SOURCES})
 TARGET_LINK_LIBRARIES(MyProj SomeLib)
@@ -559,7 +559,7 @@ important ones.
 
 So, in QMake you might want to do something like
 
-```
+```qmake
 INCLUDEPATH += <SomePath>/include
 LIBS += -L<SomePath>/deps -lsomeDep
 DEFINES += USE_DEP
@@ -568,7 +568,7 @@ DEFINES += USE_DEP
 But in CMake, the correct way to do this is to tie them to a target. So instead
 you should use
 
-```
+```cmake
 add_executable(MyApp ${MYAPP_SOURCES})
 
 target_include_directories(MyApp <SomePath>/include)
@@ -617,7 +617,7 @@ You can find more information about these on CMake's documentation,for
 One of the first bits of "arcane magic" you may come in contact with when getting
 to grips and using CMake will probably be along the lines of something like this:
 
-```
+```cmake
 find_package(SDL)
 target_link_libraries(MyApp ${SDL_LIBRARIES})
 target_include_directories(MyApp ${SDL_INCLUDE_DIRS})
@@ -731,8 +731,9 @@ projDir/lib/CMakeLists.txt has one that says `include(cmake/somescript.cmake)`
 
 and
 
-```
-projDir $ cat ./lib/cmake/someScript.cmake
+`projDir $ cat ./lib/cmake/someScript.cmake`
+
+```cmake
 
 message("Current Binary dir = ${CMAKE_CURRENT_BINARY_DIR}" )
 message("Current Source dir = ${CMAKE_CURRENT_SOURCE_DIR}" )
@@ -832,7 +833,7 @@ particularly complicated but it ties up some of the stuff we mentioned before.
 
 Way back, when I mentioned targets, I had some example snippets like so:
 
-```
+```cmake
 add_executable(MyApp ${MYAPP_SOURCES})
 
 target_include_directories(MyApp <SomePath>/include)
@@ -844,7 +845,7 @@ target_compile_definitions(MyApp "USE_DEP")
 Well, the thing is, those are not 100% correct. Let's change this up a bit, and
 let's make _MyApp_ into _MyLib_ so that some of this can make better sense:
 
-```
+```cmake
 add_library(MyLib ${MYLIB_SOURCES})
 
 target_include_directories(MyLib PRIVATE <SomePath>/include)
@@ -856,7 +857,7 @@ target_compile_definitions(MyLib INTERFACE "USE_DEP")
 Now, what these keywords control is the **transitivity** of these properties.
 And the way this comes into play is when we re-introduce My app
 
-```
+```cmake
 add_executable(MyApp ${MYAPP_SOURCES})
 
 target_link_libraries(MyApp MyLib)
@@ -1003,7 +1004,7 @@ way of doing this is doing something which, after we realised CMake doesn't care
 about includes is somewhat wasteful and nonsensical. It's also something you
 might have seen elsewhere.
 
-```
+```cmake
 set(MYLIB_SOURCES ${MYLIB_SOURCES} class1.cpp class2.cpp class3.cpp)
 
 set(MYLIB_HEADERS ${MYLIB_HEADERS} class1.hpp class2.hpp class3.hpp)
@@ -1019,7 +1020,7 @@ on your IDE.
 
 There is another solution though, which is, in a way, more adequate.
 
-```
+```cmake
 set(MYLIB_SOURCES ${MYLIB_SOURCES} class1.cpp class2.cpp class3.cpp)
 
 set(MYLIB_HEADERS ${MYLIB_HEADERS} class1.hpp class2.hpp class3.hpp)
@@ -1043,7 +1044,7 @@ private headers. That way you can `install()` just the ones you want your users
 to see. Additionally, this is a good opportunity to remind you that _GLOB_ is a
 trap. So.. amending our snippet:
 
-```
+```cmake
 set(MYLIB_SOURCES ${MYLIB_SOURCES} class1.cpp class2.cpp class3.cpp)
 
 set(MYLIB_PUBLIC_HEADERS ${MYLIB_PUBLIC_HEADERS} class1.hpp class2.hpp)
@@ -1068,7 +1069,7 @@ What I propose is instead of
 
 You write something like
 
-```
+```cmake
 
 find_package(GLEW)
 
@@ -1119,7 +1120,7 @@ what you need to know. For the extra bits, lemme copypasta some code from
 , a project I maintain to study on my spare time and which I've converted to use
 CMake as well.
 
-```
+```cmake
 
 # Install all public headers to the correct folders
 
@@ -1184,7 +1185,7 @@ install(EXPORT WarpDrive-targets DESTINATION ${WarpDrive_INSTALL_DIR})
 
 And that code includes a certain `WarpDrive-config.cmake.in` that reads:
 
-```
+```cmake
 
 set(WARPDRIVE_VERSION "@WARPDRIVE_VERSION_VERSION@")
 
@@ -1251,7 +1252,7 @@ or in absolute (say you want something on /etc)
 
 You DO need to set those paths though through, say
 
-```
+```cmake
 
 set(LIB_INSTALL_DIR lib)
 set(INCLUDE_INSTALL_DIR include)
@@ -1306,7 +1307,7 @@ broken now.
 This is a place where **generator expressions** come to the rescue. Specifically,
 there's a pair you're very likely to use all the time:
 
-```
+```cmake
 target_include_directories(${PROJECT_NAME} PUBLIC
       $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/..>
      $<INSTALL_INTERFACE:include>)

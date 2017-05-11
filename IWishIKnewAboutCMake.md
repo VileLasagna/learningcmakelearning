@@ -4,8 +4,8 @@
 
 It was a long time coming but finally I had an excuse to push CMake up my
 learning priority queue. It's a tool I long respected and now it's certainly
-my weapon of choice when it comes to build systems. But it can be quite
-annoying to learn and following ye olde "not made here syndrome" I've 
+my weapon of choice when it comes to build systems. It can, however, be quite
+annoying to learn and so, following ye olde "not made here syndrome", I've
 decided to go ahead and write down some of the things that I not only
 find important, but also that I find can go somewhat unsaid when you're
 learning CMake "in the wild" as a lot it is just "assumed" from you, the
@@ -38,7 +38,7 @@ Table of Contents
     * [Packages](#packages)
     * [<em>Source Folder</em> and <em>Binary Folder</em> (<em>List Folder</em> makes a return cameo)](#source-folder-and-binary-folder-list-folder-makes-a-return-cameo)
     * [In\-Source Builds vs Out\-of\-Source Builds](#in-source-builds-vs-out-of-source-builds)
-    * [install(EXPORT)  export(TARGETS)](#installexport--exporttargets)
+    * [install(EXPORT) and export(TARGETS)](#installexport-and-exporttargets)
     * [PUBLIC PRIVATE INTERFACE \- The Magic Words of transitivity](#public-private-interface---the-magic-words-of-transitivity)
   * [General Practics / Hints &amp; Tips](#general-practics--hints--tips)
     * [Don't mangle your lists](#dont-mangle-your-lists)
@@ -57,7 +57,7 @@ Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc.go)
 
 Well, if you're still debating whether it's worth or not to learn CMake and use
 it for your projects, be them professional or hobbyist, I will just go ahead and
-recommend it.  CMake is damn bloody powerful and not too clunky to use. I, for
+recommend it. CMake is damn bloody powerful and not too clunky to use. I, for
 the longest time stuck to QMake, as the thing I'd learnt and knew how to wrestle
 pretty efficiently and as much I will still defend QMake to be much better and
 more versatile than people give it credit for (i.e: It's a perfectly fine multi
@@ -78,6 +78,7 @@ Probably one of the things that most attract me is CMake's management of
 "packages" which can be created and "found" to help you manage dependencies.
 Many of which through built-in modules which helps you keep your paths and
 linking somewhat sane. I'll talk a bit more about them later but, TL;DR:
+
  > Oh no! Now I have to sort out THIS and link it in?
  >
  >  ```
@@ -85,50 +86,52 @@ linking somewhat sane. I'll talk a bit more about them later but, TL;DR:
  > target_link_libraries(MyLovelyProject SomeMonster)
  >  ```
  >
- > Congratulations! You have you library linking, your includes pointed to
+ > Congratulations! You have you library linking, your includes pointed to,
  > your language standard requirement notified and any compile flags or defines
  > needed already forwarded
 
 It's a level of power I haven't found anything else and it's fantastic. The more
-complex your projects become, the more you feel this is saving you from all the
+complex your projects become, the more you feel this is saving you from the
 nightmare that might be managing all that.
 
 I am, however, a firm believer that as long as some magic like that remains
 magical it actually means you're not understanding what's going on and, thus,
 are unable to make any use of if other than just downloading someone else's
-project, typing the commands and just hoping it works. And this is what this is
-about.
+project, typing the commands and hoping it works. And this is what this is about.
 
 ## How is *THIS* document any special?
 
 CMake has good documentation.
 
-This is a fact, if you disagree you are way too blessed. Go spend half an hour
+This is a fact. If you disagree you are way too blessed. Go spend half an hour
 trying to understand any Windows API function through MSDN... you'll agree.
 
-CMake's documentation though, is good reference. It doesn't do too great a job
+CMake's documentation though, is good __reference__. It doesn't do too great a job
 in "teaching" you how to use it. It mostly assumes you need to know how each
-individual thing works and does a good job at that. And it is pretty extensive
+individual thing works and does a good job at that. And it _is_ pretty extensive
 and comprehensive.
 
 Likewise, most of the CMake learning material elsewhere fall in one of two
-categories, by and large.
+categories, by and large:
+
 On the one hand you have some step by step tutorials which get you building some
-come, all right. There's a decent official one, even.
+code, all right. There's [a decent official one](https://cmake.org/cmake-tutorial), even.
+
 And on the other hand there's a pretty good number of _StackOverflow_ questions
 with often good answers that will help you with a particular trick or situation.
 
 Where all that is lacking, I feel, is in teaching you _the mindset_ of writing
 CMake, in a way. A lot of the concepts and jargon that underlie how this works.
 And to me, that is central to demystifying a lot of what CMake does for you, and
-then getting CMake to do it when you want it to.
+then, getting CMake to do it when you want it to.
 
 ### TL;DR
 
-I intend to go on a bit over these core principles to try and help you
-understand how CMake is doing things or how it expects you to do those things.
-Also how other people who are more experienced with CMake will expect them. So
-a mix of basic introduction with a splash of _Good Practices_ for good measure.
+I intend to go over these core principles to try and help you understand how CMake
+is doing things or how it expects you to do those things. Also how other people
+who are more experienced with CMake will expect them. So a mix of basic introduction
+with a splash of _Good Practices_ for good measure.
+
 Though there are some good documents on this, I still think there are some
 things I had to sort of piece together on my own and would have liked to have
 seen before I started doing my own stuff. With that in mind, on we go.
@@ -148,8 +151,8 @@ finished product. Be it a library or an executable...
 CMake doesn't actually do that.
 
 Because CMake is a __Meta build system__ and those take the same sort of input
-and, instead, generate instructions for those build systems, which you may then
-call to get your stuff built.
+and, instead, generate instructions for those plain old build systems, which you
+may then call to get your stuff built.
 
 So CMake won't call `/usr/bin/clang` or `cl.exe`, instead it will generate the
 appropriate build files and call `/usr/bin/make` or `nmake.exe` which then will
@@ -181,6 +184,13 @@ This is the file you might have to tweak when, for instance, CMake tells you
 **cmake-gui** tool will show you precisely variables on that cache. And will
 write there the variables and flags you set.
 
+It is, however, just as fine for you to go and edit the file on your own and
+though it can look a bit overwhelming initially because it gets so big, you'll
+find that it ain't so bad once you've taken a look. Generally, when you call `cmake`
+it reads your lists, and does a _configure_ step, where it writes your cache if
+it's not there. The it has a _generate_ step, which will write your build files.
+Finally, `cmake --build` will call your build tools. (or you can call them
+yourself)
 
 #### A function based build system
 
@@ -204,10 +214,12 @@ target_link_libraries(MyProj SomeLib)
 target_compile_definitions(MyProj MyDef)
 ```
 
-In CMake every statement is a function or a macro (which works mostly like functions, but there are some [differences](https://cmake.org/cmake/help/v3.0/command/macro.html), even loops. This can be a bit strange
-in the beginning but most of them aren't too arcane once you get a feel for the
-mindset behind them. So rather than tweaking something, more likely than not,
-each CMake statement is giving a more direct command.
+In CMake every statement is a function or a macro (which work mostly like
+functions, but there are some [differences](https://cmake.org/cmake/help/v3.0/command/macro.html),
+even loops. This can be a bit strange in the beginning but most of them aren't
+too arcane once you get a feel for the mindset behind them. So rather than
+tweaking something, more likely than not, each CMake statement is giving a more
+direct command.
 
 #### Casing conventions
 
@@ -237,7 +249,7 @@ CMake to generate you either a Code::Blocks project or (eeeeewwww) a Visual
 Studio solution, as those IDEs give you a lot more "interaction" so to speak,
 helping you add and remove files, parse code, walk through debugging....
 
-CMake recently, from version 3.7, CMake, working with some IDE vendors (at least
+Quite recently, from version 3.7, CMake, working with some IDE vendors (at least
 the people from Qt, that I know of) added a new feature called _Server Mode_.
 **cmake-server** is a special mode that provides additional information for IDEs
 and helps them interpret all that through JSON. As it's recent, it's a work in
@@ -260,8 +272,8 @@ tried which have CMake support (or for which CMake has unilateral support).
 
 This is what I've been using by and large. I'm a long fan of the IDE and
 in general it is the measuring stick I apply to every other thing I come
-across (_"hurr durr, I can go and download QtC for free. Are you even as
-good as that?"_)
+across (_"hurr durr, I can go and download QtC for free. Are you AT LEAST as
+good as it? I doubt it."_)
 
 A disclaimer that this is what I use so it'll be overwhelmingly the one of
 which I have the most to say. 100% objective and unbiased opinion, if you
@@ -271,13 +283,13 @@ Qt Creator has long had support for CMake but I will say that my initial
 contact, way back, was pretty disappointing. I felt a bit that the support
 was kinda lack lustre and it was one of the things which kept me to QMake
 (I guess Qt never made enough noise about Qbs to push me into learning that)
-It's support has been steadily getting better and although some things still
-have me disappointed such as the fact that if I want to create a new class
+Its support has been steadily getting better but some things still have me
+disappointed. Like, say as the fact that if I want to create a new class
 I have to pop Guake down and `touch newclass.{h,c}pp` and
 then manually add them to the CMakeLists.
 
-It's still disappointing but a small detail and the rest of what Qt Creator
-offers has made me stick to it.
+It's still annoying but a small detail and the rest of what Qt Creator
+offers has made me stick to it, at least for now
 
 If you're not familiar, Qt Creator works with the concept of "kits". A kit
 is a "collection of settings" which include
@@ -293,15 +305,16 @@ is a "collection of settings" which include
 That's a whole bunch of stuff and in those CMake configurations you can
 specify which generators you want to use with that kit as well as any
 additional defines you want to pass CMake. By default QT adds its own root
-to the CMAKE_PREFIX_PATH as well as the exectuables for the compilers you've
+to the CMAKE_PREFIX_PATH as well as the executables for the compilers you've
 set up in the kit and for the QMake executable associated with it.
 
 That already gives you some good help _but wait, there's more!_
 
-In addition to that Qt Creator has, on it's _Projects_ tab, a visual
+In addition to that Qt Creator has, on its _Projects_ tab, a visual
 parser of the CMakeCache which is pretty helpful when tweaking variables
-and options for your build. It is very reminiscent (possibly most of the
+and options for your build. It is very reminiscent (possibly a lot of the
 very same code, I'd guess) of the _cmake-gui_ editor.
+
 Finally, something that QtCreator always makes me miss on other IDEs is
 the ability to set up custom build and deploy steps. Adding either
 `cmake -- install` or `make package` (if you're using CPack) as a deploy
@@ -350,7 +363,7 @@ IDE JetBrains built on top of IntelliJ, their Java IDE and they seem to
 know their stuff because their IDEs seem to always be rated among the best
 available for each one. Clion is no exception there. It is more closely
 integrated with CMake than QtCreator. It has better completion and more
-awareness of how the project should related to the CMakeLists. It is
+awareness of how the project should relate to the CMakeLists. It is
 definitely worth a check. From what I understand, JetBrains puts a lot
 of value in making sure their IDE is helpful in getting tons of code
 refactoring done easy. Things like adding inheritance on the fly, renaming
@@ -375,20 +388,21 @@ either by itself or by comparison, are the following
     calling "install" from the IDE. It keeps sounding small but it's a thing
     I find myself less and less willing to give away. _THAT SAID_ JetBrains
     are aware people want this and there's a feature request being looked
-    at referring to this. So it may very well come in a version in the near
+    at referring to this. So it may very well come in a version in the near future
 
  - No Support for Clang+C2
 
-    VC is a terrible compiler and no one should ever have to use it. So far,
-    so good, as Clion doesn't normally support VC. You have to enable it in
-    a hidden menu to remind you of the terrible mistake you're making. What
+    > VC is a terrible compiler and no one should ever have to use it.
+
+    So far, so good, as Clion doesn't normally support VC. You have to enable it
+    in a hidden menu to remind you of the terrible mistake you're making. What
     Clion gives you instead is the option of using either MinGW or Cygwin.
-    As far as I'm concerned that is fine and the way I want MY stuff to
+    As far as I'm concerned that is fine and it's the way I want MY stuff to
     happen when I need to deploy them to Windows. However the world is a big
     place and sometimes you need to link to standard VC. Clion has support
     for the VC toolchain, yes, but just the standard one. It goes ahead
     and detects `cl.exe` and sets that up as your compiler and there's not
-    much you can do about it (that I have found, at least) which works, but
+    much you can do about it (that I have found, at least). It does work, but
     then you're using a horrible compiler that will make your life harder
     and produce worse code.
 
@@ -401,14 +415,14 @@ either by itself or by comparison, are the following
     machine at home _"Crappy Lappy"_ and that name is pretty adequate (if
     you wonder how crappy, [It's one of these](https://support.hp.com/nz-en/document/c05243218 "Official specs") )
     It seems to struggle quite a bit with Clion parsing all the things.
-    Not sensible on a properly powerful dev machine but, apparently we
-    can't always have one handy. Again, comparatively, Qt Creator seems
-    to be easier on it.
+    Not sensible on a properly powerful dev machine (i.e: 100% smooth sailing
+    on my pc at work, for instance) but, apparently we can't always have one handy.
+    Again, comparatively, Qt Creator seems to be easier on it.
 
  - It costs real moneys
 
-    Clion is not crazy expensive and the from what I've used of the IDE,
-    it's money very well spent. When I've looked at it it hasn't been the
+    Clion is not crazy expensive and from what I've used of the IDE,it seems to
+    be money very well spent. When I've looked at it, that hasn't been the
     greatest factor in me not going for it, but it's there, every penny it
     costs is a penny it costs over what QtCreator costs, and as I said, that
     is an excellent IDE you're getting. So... there's that factor as well.
@@ -421,23 +435,23 @@ either by itself or by comparison, are the following
 Have a penny, go download a good IDE.
 
 Jokes about VS being horrible aside (it's not, it's just pretty bad) if you
-do want to use it, CMake helps you a lot. One of the available generators
-for Windows is called _Visual Studio <someVer> <SomeYear>_ and what it does
-for you is generate a Visual Studio solution for you to work on. I can't
-tell you much about it because once I knew Qt Creator I just could never
-go back to Visual Studio without being completely horrified at it so there's
+do want to use it ~~I'm sorry for you~~, CMake helps you a lot. One of the
+available generators for Windows is called _Visual Studio <someVer> <SomeYear>_
+and what it does for you is generate a Visual Studio solution for you to work on.
+I can't tell you much about it because once I knew Qt Creator I just could never
+go back to Visual Studio without being increasingly horrified at it so there's
 about 6 years I don't really use that IDE much any more but the generated
-solution is actually really good, I've been told. It tracks changes to the
+solution is actually pretty good, I've been told. It tracks changes to the
 CMakeLists and helps a bit with that. I've also heard rumours that _VS 2017_
 might have actual CMake support and I would imagine that is pretty good news
 as far as I'm concerned since solutions and msbuild are one of the things I
 abhor in the IDE. But, again, given I avoid it as much as I can, I'm
 potentially not qualified to talk meaningful details about this, nor confirm
-the truth in this.
+the truth in it.
 
 So if you want to insist on this, you probably want to open your project
-with **cmake-gui** and picking the right version of Visual Studio from the
-available generators and then open the solution with the IDE.
+with **cmake-gui**, pick the right version of Visual Studio from the available
+generators and then open the solution with the IDE.
 
 #### *Code::Blocks* and *KDevelop*
 
@@ -451,7 +465,7 @@ checked out if you're comfortable there.
 
 There are a few more also listed but these keep slipping more
 and more distant from my own familiarity. I'm mentioning them more on this
-idea that, they're a thing, if you like it, you might want to check it out.
+idea that "they're a thing, if you like it, you might want to check them out".
 You can look for more information on [CMake's official docs](https://cmake.org/cmake/help/v3.8/manual/cmake-generators.7.html "Cmake-generators")
 
 ## Lexicon - all the mumbo-jumbo
@@ -473,8 +487,9 @@ Generator are, in a way, the "templates" for CMake. CMake works in two steps:
 **Configure** and **Generate**.
 In the _Configure_ step, CMake reads through your CMakeLists and creates a
 bunch of temporary build files, includind _CMakeCache.txt_. Afterwards, when
-you've tweaked all you need, if anything, once you _Generate_, cmake writes the
-output build files for the Generator you've chosen.
+you've tweaked all you need, if anything, once you _Generate_ (by clicking the
+button if you're on the gui or just running `cmake` again if you're on the CLI),
+cmake writes the output build files for the Generator you've chosen.
 
 The most common ones are either **Unix Makefiles** or **NMake Makefiles** but
 as I mentioned in the IDE section, there are also some that generate project
@@ -495,7 +510,7 @@ Cpack's own documentation and `cpack --help` for more info on those.
 
 Way back I mentioned a CMake command called `add_subdirectory(SomeProj)`.
 That command does what it says on the tin, so speak, but it also exposes a
-concept upon which CMake is build, the **Build Tree**.
+concept upon which CMake is built, the **Build Tree**.
 When you call CMake, it looks for a _CMakeLists.txt_ and sets that as the root
 of the build tree. Projects which you add as subdirectories may or may not be
 actually independent projects on their own.
@@ -513,21 +528,21 @@ Lets imagine a project
 
 now, assuming myApp and myLib are both added as subdirectories and that myApp
 uses myLib and links it in. Let's say you want to reference, in myLib, the root
-folder for it, for wahtever reason, let's say defining include paths. CMake has
-a variable you're likely to come across very soon in examples,
-`CMAKE_CURRENT_SOURCE_DIR` which points to the directory you're reading the
-source code from, where you have your CMakeLists is. If, in myLib/CMakeLists
-you enter `message(${CMAKE_CURRENT_SOURCE_DIR})` you will get
-`<SomePath>/OurProject` as an output.
+folder for it, for whatever reason, let's say defining include paths. CMake has
+a variable you're likely to come across very soon in examples, `CMAKE_SOURCE_DIR`
+which points to the directory you're reading the source code from, where you have
+your CMakeLists is. If, in myLib/CMakeLists you enter `message(${CMAKE_SOURCE_DIR})`
+you will get `<SomePath>/OurProject` as an output.
 
 That might be strange at first, but your Source Dir is the root of your build
 tree. What you'd be looking for in this case is `CMAKE_CURRENT_LIST_DIR`, which
-gives you the path to the _CMakeLists.txt_ that's currently being processed,
+gives you the path to the file that's currently being processed by cmake,
 regardless of the build tree structure.
 
 This becomes more relevant when you're talking about variables since variables
 set for a father node will be inherited by the child nodes etc... So projects
-don't necessarily exist in isolation.
+don't necessarily exist in isolation. Additionally, targets are shared with
+the rest of the tree, which is why _myApp_ can link _myLib_
 
 ### Target - The building block
 
@@ -579,20 +594,20 @@ CMake understands some additional types of libraries which you may want to be
 aware of.
 
  - `INTERFACE`
-    Interface libraries are your header-only libraries. And CMake treats them
-    specially because with no source files, they can't normally be a target
+    libraries are your header-only libraries. And CMake treats them
+    specially because with no source files, they can't normally be a build target
     since they have no output. But you may still want to have them so you can
     easily use them. So this is a convenience type for that.
  - `OBJECT`
-    An Object library is an ever cruder form of a static library. Sometimes
+    libraries are an ever cruder form of a static library. Sometimes
     you have code that is like a library but not really. You just want to get
     that partial compile in and then use it. That's where an Object library
     comes in. You do that compile and then, instead of linking it in, you can
     just tell CMake to "add these object files to the target too".
  - `ALIAS`
-    That's what it sounds. You can use it if you imported an alternative version
-    of a library or if you intend to have your library used in lieu of a more
-    common one.
+    libraries are what it sounds. You can use it if you imported an alternative
+    version of a library or if you intend to have your library used in lieu of
+    a more common one.
 
 You can find more information about these on CMake's documentation,for
 [the add_library() command](https://cmake.org/cmake/help/v3.8/command/add_library.html)
@@ -654,7 +669,8 @@ error prone and simpler.
 Probably more exciting is the fact that it isn't too difficult for you to provide
 such packages for libraries of your own. CMake has a [CMakePackageConfigHelpers](https://cmake.org/cmake/help/v3.8/module/CMakePackageConfigHelpers.html)
 module you can include to precisely help you with that. It's worth a look once
-you're ready to dive into this.
+you're ready to dive into this. A later part of this document is a more in-depth
+look at [precisely this](#packaging-and-redistribution) so we'll go there.
 
 ### *Source Folder* and *Binary Folder* (*List Folder* makes a return cameo)
 
@@ -669,7 +685,7 @@ And for **Binary Folder**
 
 > "Pretty evidently the folder for my compiled binaries"
 
-And both are predictably wrong in this case.
+And if I'm putting it like that both are pretty predictably wrong.
 
 When CMake hears something like `CMAKE_SOURCE_DIR` what it means is,
 as mentioned before, the directory containing the _CMakeLists.txt_ for the root
@@ -684,8 +700,8 @@ For every directory included with `add_subdirectory()`, a subfolder is created
 inside the `CMAKE_BINARY_DIR`, that folder is `CMAKE_CURRENT_BINARY_DIR`.
 
 As we mentioned before too, the last one of these is `CMAKE_CURRENT_LIST_DIR`
-which is similar to current source dir, but relates to the CMakeLists file it
-is used in.
+which is similar to current source dir, but relates to the file it is used in,
+even if it's a module.
 
 A bit confusing, yes? So let's just hack out a quick mock-up example.
 
@@ -784,8 +800,8 @@ Instead, what you want is something more like:
 ~ $ cd projects
 ~/projects $ git clone <Google Protobuf's repo here> protobuf
 ~/projects $ cd protobuf
-~/projects/protobuf  $ mkdir build
-~/projects/protobuf  $ cd build
+~/projects/protobuf $ mkdir build
+~/projects/protobuf $ cd build
 ~/projects/protobuf/build $ cmake ..
 
 ```
@@ -794,20 +810,20 @@ What this achieves is that all that garbage gets put inside that _build_ folder.
 Keep in mind to do this, pain will ensue if you don't. I know both **QtCreator**
 and **Clion** do try and help you do this by default and **cmake-gui** does
 display a field for you to choose a build folder which should be separate.
-Just... keep in mind... no in-source if you intend to retain your sanity.
+Just... be aware... no in-source if you intend to retain your sanity.
 
-### install(EXPORT)  export(TARGETS)
+### install(EXPORT) and export(TARGETS)
 
 These two similarly-named commands mean annoyingly different things.
 You'll come across the first one a lot as it's a key command when generating
 packages. It creates the file that describes the targets you're exporting
 through said packages.
 
-`export(TARGETS)` works in a similar way except the file generated is specific t
-o the source tree it was generated in. So it's the same, except the
+`export(TARGETS)` works in a similar way except the file generated is specific
+to the source tree it was generated in. So it's the same, except the
 complete opposite. Most of the time you want `install(EXPORT)` but [docs](https://cmake.org/cmake/help/v3.8/command/export.html)
 give a few examples on where you might need the other. Just keep in mind that
-**export** will not provide you with files for creating packages
+`export` will **not** provide you with files for creating packages
 
 ### PUBLIC PRIVATE INTERFACE - The Magic Words of transitivity
 
@@ -881,7 +897,7 @@ others I have figured out (still am?) the hard way.
 Let's start with one of them well known traps.
 
 Say you want to tell CMake to look for your packages in a certain path. You look
-up the docs and find out what variable teels it that. Easy peasy:
+up the docs and find out what variable tells it that. Easy peasy:
 
 `set(CMAKE_PREFIX_PATH <myPath>)`
 
@@ -919,9 +935,9 @@ revisit some of our old examples and talk a bit about it.
                   CMakeLists.txt
 ```
 
-Something interesting about CMake is that in example, _myLib/CMakelists.txt_ could
-be a whole project on its own, independent from the rest of the tree. Whether to
-make it like that or not, it's your choice.
+Something interesting about CMake is that in this example, _myLib/CMakelists.txt_
+could be a whole project on its own, independent from the rest of the tree.
+Whether to make it like that or not, it's your choice.
 
 Something I find useful, at times, though, is having the root CMakeLists used
 for managing the more general "project-wide" options such as installation dirs,
@@ -947,7 +963,7 @@ the ability to comment files in and out, all that thing. Just don't go there,
 regret will catch up to you sooner or later.
 
 What you CAN do instead should your sources become unsightly on your lists is
-move them to an include. So you could have a _myprojsources.cmake_
+move them to an include. So you could have a _myprojsources.cmake_ with
 
 `set(MYPROJ_SOURCES ${MYPROJ_SOURCES} <around 379 files here>)`
 
@@ -975,7 +991,7 @@ There are maybe three things to talk about includes in CMake that are of some
 interest.
 
 The first one is that initially CMake doesn't care about header files. And it
-makes sense from a build system perspective. Header's don't generate object code,
+makes sense from a build system perspective. Headers don't generate object code,
 they're the preprocesor's problem and as long as _IT_ knows where to find those
 files, why should the build system ever care? So unless you explicitly tell CMake
 "Well, yeah, but I care about them" then don't expect to even see them.
@@ -984,8 +1000,8 @@ However we've moved past that, <current year argument here> and we decided CMake
 is so shiny we want to use it to even during development. So the first thing is
 that we need to tell CMake explicitly WE care about those headers. The traditional
 way of doing this is doing something which, after we realised CMake doesn't care
-about includes is wasteful and nonsensical. It's also something you might have
-seen elsewhere.
+about includes is somewhat wasteful and nonsensical. It's also something you
+might have seen elsewhere.
 
 ```
 set(MYLIB_SOURCES ${MYLIB_SOURCES} class1.cpp class2.cpp class3.cpp)
@@ -1086,7 +1102,7 @@ aside a section just for talking a bit about some of the aspects of this.
 
 ### Creating your own packages
 
-I intended to talk a bit about MODULE packages vs CONFIG packages but I already
+I intended to talk a bit about _MODULE_ packages vs _CONFIG_ packages but I already
 did a bit and there is basically just one thing to talk about module packages
 at this point I guess.
 
@@ -1094,14 +1110,14 @@ at this point I guess.
 
 There you go. So let's talk a bit more about creating you own packages.
 
-I've also mentioned CMake provides a [helper module](https://cmake.org/cmake/help/v3.8/module/CMakePackageConfigHelpers.html)
+Another thing I've is that mentioned CMake provides a [helper module](https://cmake.org/cmake/help/v3.8/module/CMakePackageConfigHelpers.html)
 to help you create those packages. But, how do you go about it?
 
 That page has an example which looks pretty small but actually tells you most of
 what you need to know. For the extra bits, lemme copypasta some code from
 [Warp Drive's CMakeLists.txt](https://github.com/VileLasagna/WarpDrive/blob/dEffectiveMotor/WarpDrive/CMakeLists.txt)
 , a project I maintain to study on my spare time and which I've converted to use
-Cmake as well.
+CMake as well.
 
 ```
 
@@ -1186,7 +1202,7 @@ endif()
 
 ```
 
-And REALLY is the entire file.
+And that REALLY is the entire file.
 
 Once CMake runs through all of that, it generates 4 files:
 
@@ -1204,23 +1220,24 @@ Plus, it copies my library files and my includes to the correct locations.
 So... let's run over that CMakeLists
 
 First thing that happens is that it copies a bunch of headers to a bunch of
-different folders. It's only a bunch of statements because I have some headers
+different folders. It's only several statements because I have some headers
 in the original folders I don't deploy. If you can narrow what you want to a
 regexp, you can use `install(DIRECTORY)` which will copy the folder structure
-for you.
+for you. (GLOBing the files and `install(FILES)` the list will "squash" you folder
+structure, with all the files being put in the same place)
 
 The _DESTINATION_ for all those `install()` is a relative path. It is appended
 to a variable called _CMAKE_INSTALL_PREFIX_. That variable is what you need to
 `set` to where you want to install.
 
 The next call is an [`install(TARGETS)`](https://cmake.org/cmake/help/v3.8/command/install.html#installing-targets)
-What it does is install the output files of the listed targets according to
+What it does is copy the output files of the listed targets according to
 their type. So executables on X, libraries on Y... whatever you decide. If you
-are unlucky to be in Windows, iot helps you a bit as it considers DLLs as
+are unlucky to be in Windows, it helps you a bit as it considers DLLs as
 RUNTIME targets. So you .lib goes to your LIBRARY destination but your dll is
 copied to the same folder as your .exe, as Windows would expect it.
 
-That command also takes a _EXPORT_ parameter. That EXPORT is part of the final
+That command also takes an _EXPORT_ parameter. That EXPORT is part of the final
 config files and if you go back you'll see that the very final call there is
 an `install(EXPORT)`. Those files have the information about the targets you're
 installing. They know what the libraries are called, register the transitive
@@ -1301,7 +1318,7 @@ this, use the other one." Each gets substituted by an empty string on the other
 step.
 This enables you to more easily deal with whatever situation your working environment
 might be in so you can match what you want. And for the build interface it's 100%
-okay to have a hard path... and the one I have there, that _CURRENT_LIST_DIR_ that
+okay to have a hard path... and the one I have there, that _CURRENT_LIST_DIR_? That
 DOES get expanded to a hard path.
 
 Something to also keep in mind is that if your library is a static library and it
@@ -1330,11 +1347,11 @@ really build anything else around it.
 
 CPack has its own set of generators. **7Z** (or plain old _ZIP_) will just
 compress your files and create the archive for you, it can also give you a
-checksum for your generated file. There are some platform-specific options but
-those are for losers anyway. Instead, you can download Qt's Installer Framework
-and CPack works with that. It's even getting better and there's a specific
-[module](https://cmake.org/cmake/help/v3.8/module/CPackIFW.html) for it if you
-want specific configuration of that installer.
+checksum for your generated file. If you want something fancy, there are some
+platform-specific options but those are for losers. Instead, you can download
+Qt's Installer Framework and CPack works with that. It's even getting better and
+there's a specific [module](https://cmake.org/cmake/help/v3.8/module/CPackIFW.html)
+for it if you want specific configuration of that installer.
 
 **IFW** is definitely my recommendation if you want to make a visual installer.
 It's pretty literally an installer exactly like the one you get for any version
@@ -1342,7 +1359,7 @@ of Qt you Download. Cpack will bundle everything and generate you an offline
 installer. The _ONE_ downside is that IFW doesn't support CLI installing so if
 you need that then you might want to generate another pack...
 
-Good news is you can have your cake and eat it too. `set(CPACK_GENERATOR "7Z;IFW")`
+Good news is you **can** have your cake and eat it too. `set(CPACK_GENERATOR "7Z;IFW")`
 will conveniently enough have CPack generate both packs.
 
 A few generators (IFW included) support component installation. Again, if you've
@@ -1350,7 +1367,7 @@ installed Qt using the online installer (which should be the way you install Qt
 always) you've probably seen the huge tree of things you can choose to install.
 So you CAN produce complex installations like that if you have tons of optional
 components. [CMake wiki](https://cmake.org/Wiki/CMake:Component_Install_With_CPack)
-is quite out of date for the msot part, but their examples are still pretty good
+is quite out of date for the most part, but their examples are still pretty good
 and they do talk some about this so a valid resource if you're interested in this.
 
 If you _ARE_ going the route of multiple CPack generators and/or going all out
@@ -1358,6 +1375,8 @@ on all the details of the configuration (seriously, [this](https://cmake.org/Wik
 is just the common settings, for the general parts. You can go pretty deep here)
 you probably want to consider using separate CPack config files and you want to
 spend some time in the official docs looking for how to get that nice and polished
+
+> Keep in mind CPack include must always be AFTER you've done all that
 
 Anyways it is a pretty fantastic tool and though I mentioned only a couple, if
 you want it does have a ton of other generators (NSIS, DEB, RPM, <inser a couple

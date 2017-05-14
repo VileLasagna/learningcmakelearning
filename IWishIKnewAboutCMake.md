@@ -695,7 +695,7 @@ directory containing the _CMakeLists.txt_ that is currently being processed:
 And while `CMAKE_BINARY_DIR` is a bit closer to what we'd expect, what
 it means is _"That folder where I'm going to write CMakeCache.txt and build all
 the things! ALL THE THINGS!"_.
-`CMAKE_CURRENT_BINARY_DIR` follows the came rules of `CMAKE_CURRENT_SOURCE_DIR`.
+`CMAKE_CURRENT_BINARY_DIR` follows the same rules of `CMAKE_CURRENT_SOURCE_DIR`.
 For every directory included with `add_subdirectory()`, a subfolder is created
 inside the `CMAKE_BINARY_DIR`, that folder is `CMAKE_CURRENT_BINARY_DIR`.
 

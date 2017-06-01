@@ -329,7 +329,8 @@ That said it's not without its own flaws and annoyances.
 
 I've mentioned CMake Server Mode earlier and Qt is jumping on it. So if you
 intend to use Qt Creator to work with CMake, you DO want a version later
-than **4.3** which, right now is in beta. You can look for the Qt blog post
+than **4.3** which, ~~right now is in beta~~ is finally out, so MAKE SURE
+the IDE is up-to-date if you're using it. You can look for the Qt blog post
 on this if you're curious, but the support has got drastically better with
 this version.
 

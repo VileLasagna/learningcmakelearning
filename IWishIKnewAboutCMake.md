@@ -50,6 +50,7 @@ Table of Contents
     * [Creating your own packages](#creating-your-own-packages)
     * [Relocatable packages](#relocatable-packages)
     * [CPack](#cpack)
+    * [Deploying with windeployqt](#install-with-windeployqt-using-cpack)
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc.go)
 
@@ -1384,3 +1385,52 @@ Anyways it is a pretty fantastic tool and though I mentioned only a couple, if
 you want it does have a ton of other generators (NSIS, DEB, RPM, <inser a couple
 Apple things I neither know nor care here>...) and the fact that it's integrated
 on your build system is really amazing.
+
+### INSTALL with windeployqt using CPack
+
+So way CPack ACTUALLY works is it creates a directory `${CMAKE_INSTALL_PREFIX}/_CPack_Packages`
+and does an install there, then it packages all the things there. This is how it
+"knows" what you've `INSTALL`ed.
+For people who have worked with Qt on Windows before, `windeployqt` is pretty
+certain to have come VERY in handy. If you've worked with Qt on Windows and don't
+know this thing exists, go look it up, it's crazy useful. It deploys not only Qt's
+libraries dependencies, but also qml dependencies, runs internationalization...
+
+But because it's a separate process it doesn't immediately work together with
+cpack. I've been after this for a while and couldn't find it so today I took a
+couple hours to proper wrangle CMake and, more importantly, CPack into making
+it work and, turns out I did it:
+
+```cmake
+if(WIN32)
+    if(QT_INSTALL_DIR)
+       find_program(WINDEPLOYQT windeployqt HINTS ${QT_INSTALL_DIR} PATH_SUFFIXES bin)
+       if(WINDEPLOYQT)
+           install(CODE "execute_process(COMMAND ${WINDEPLOYQT} bin WORKING_DIRECTORY \${CMAKE_INSTALL_PREFIX})")
+       else()
+           message("Can't find windeployqt")
+       endif()
+   else()
+       message("QT_INSTALL_DIR not defined")
+   endif()
+endif()
+```
+
+Just chuck this with your project's other install calls and you're good.
+
+What happens here is not too mysterious. First we try and find windeployqt for
+whatever version of Qt we're using. Then there's the `install(CODE)` call. That
+is one of two "let's do some crazy install then" options CMake provides. This is
+just an inlined version of `install(SCRIPT)` which literally calls the CMake
+script during install, and whilst CMake can be somewhat clunky as a scripting
+language, you can still push it pretty far.
+
+There are just two details to watch for here:
+
+First, that `/bin` folder will, obviously, depend on where you're deploying your
+binaries.
+
+And second, make sure you escape that `$` for the `WORKING_DIRECTORY`. If you
+don't, CMake will make the substitution for you and then write the call, which
+means CPack will make the wrong call when it's running, since it will deploy to
+a different directory.
